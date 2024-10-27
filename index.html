@@ -404,14 +404,22 @@
                 }
             };
 
-           const replayAudio = (e) => {
+         const replayAudio = (e) => {
     e.stopPropagation();
+
+    // Check if audio is already playing; if it is, ignore the tap
+    if (!audioRef.current.paused) {
+        return;
+    }
+
+    // Reset audio and play from the start
     if (audioRef.current) {
-        audioRef.current.currentTime = 0; // Restart from the beginning
+        audioRef.current.currentTime = 0;
         audioRef.current.play().catch(console.error);
         setIsAudioPlaying(true);
     }
 };
+
 
             // Render
             return (
