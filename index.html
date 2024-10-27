@@ -404,14 +404,14 @@
                 }
             };
 
-            const replayAudio = (e) => {
-                e.stopPropagation();
-                if (audioRef.current && !isAudioPlaying) {
-                    audioRef.current.currentTime = 0;
-                    audioRef.current.play().catch(console.error);
-                    setIsAudioPlaying(true);
-                }
-            };
+           const replayAudio = (e) => {
+    e.stopPropagation();
+    if (audioRef.current) {
+        audioRef.current.currentTime = 0; // Restart from the beginning
+        audioRef.current.play().catch(console.error);
+        setIsAudioPlaying(true);
+    }
+};
 
             // Render
             return (
