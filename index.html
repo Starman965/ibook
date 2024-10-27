@@ -321,41 +321,38 @@
             }, []);
 
             React.useEffect(() => {
-    const audioElement = audioRef.current;
+                const audioElement = audioRef.current;
 
-    const playNewAudio = async () => {
-        try {
-            if (audioElement && hasInteracted) {
-                audioElement.pause();
-                audioElement.currentTime = 0;
-                audioElement.src = pages[currentPage].audioSrc;
-                audioElement.onerror = () => handleMissingAudio(audioElement);
-                setIsAudioPlaying(true);
-                await audioElement.play();
-            }
-        } catch (error) {
-            console.error('Audio playback failed:', error);
-            setIsAudioPlaying(false);
-        }
-    };
+                const playNewAudio = async () => {
+                    try {
+                        if (audioElement && hasInteracted) {
+                            audioElement.pause();
+                            audioElement.currentTime = 0;
+                            audioElement.src = pages[currentPage].audioSrc;
+                            audioElement.onerror = () => handleMissingAudio(audioElement);
+                            setIsAudioPlaying(true);
+                            await audioElement.play();
+                        }
+                    } catch (error) {
+                        console.error('Audio playback failed:', error);
+                        setIsAudioPlaying(false);
+                    }
+                };
 
-    const handleAudioEnd = () => setIsAudioPlaying(false);
+                const handleAudioEnd = () => setIsAudioPlaying(false);
 
-    if (audioElement) {
-        audioElement.addEventListener('ended', handleAudioEnd);
-        // Only play audio if we haven't just manually triggered it
-        if (!isAudioPlaying) {
-            playNewAudio();
-        }
-    }
+                if (audioElement) {
+                    audioElement.addEventListener('ended', handleAudioEnd);
+                    playNewAudio();
+                }
 
-    return () => {
-        if (audioElement) {
-            audioElement.removeEventListener('ended', handleAudioEnd);
-            audioElement.pause();
-        }
-    };
-}, [currentPage, hasInteracted, isAudioPlaying]);
+                return () => {
+                    if (audioElement) {
+                        audioElement.removeEventListener('ended', handleAudioEnd);
+                        audioElement.pause();
+                    }
+                };
+            }, [currentPage, hasInteracted]);
 
             // Event handlers
             const handleFirstInteraction = () => {
@@ -368,21 +365,14 @@
             };
 
             const changePage = (newPage) => {
-    if (newPage >= 0 && newPage < pages.length) {
-        // Even if it's the same page, restart the audio
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
-        setCurrentPage(newPage);
-        // Add immediate audio playback
-        if (audioRef.current) {
-            audioRef.current.src = pages[newPage].audioSrc;
-            audioRef.current.play().catch(console.error);
-            setIsAudioPlaying(true);
-        }
-    }
-};
+                if (newPage >= 0 && newPage < pages.length) {
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current.currentTime = 0;
+                    }
+                    setCurrentPage(newPage);
+                }
+            };
 
             const handleTouchStart = (e) => {
                 touchStartRef.current = e.touches[0].clientX;
@@ -458,35 +448,13 @@
                         <div className="page-text">
                             {pages[currentPage].title}
                         </div>
-<button
-    key={page.id}
-    className={`nav-button ${currentPage === index ? 'active' : ''}`}
-    onClick={() => {
-        // If we're already on this page, just replay the audio
-        if (currentPage === index) {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-                audioRef.current.src = pages[currentPage].audioSrc;
-                setIsAudioPlaying(true);
-                audioRef.current.play().catch(error => {
-                    console.error('Audio playback failed:', error);
-                    setIsAudioPlaying(false);
-                });
-            }
-        } else {
-            // If it's a different page, change to that page
-            changePage(index);
-        }
-    }}
->
-    <img
-        src={page.icon}
-        alt={`Page ${index + 1}`}
-        draggable="false"
-        onError={handleMissingImage}
-    />
-</button>
+
+                        <button 
+                            className="audio-button"
+                            onClick={replayAudio}
+                        >
+                            {isAudioPlaying ? '🔊' : '🔁'}
+                        </button>
 
                         {currentPage > 0 && (
                             <button 
