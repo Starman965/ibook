@@ -319,7 +319,8 @@
                     setShowPrompt(true);
                 }
             }, []);
-React.useEffect(() => {
+
+            React.useEffect(() => {
     const audioElement = audioRef.current;
 
     const playNewAudio = async () => {
@@ -356,21 +357,6 @@ React.useEffect(() => {
     };
 }, [currentPage, hasInteracted, isAudioPlaying]);
 
-                const handleAudioEnd = () => setIsAudioPlaying(false);
-
-                if (audioElement) {
-                    audioElement.addEventListener('ended', handleAudioEnd);
-                    playNewAudio();
-                }
-
-                return () => {
-                    if (audioElement) {
-                        audioElement.removeEventListener('ended', handleAudioEnd);
-                        audioElement.pause();
-                    }
-                };
-            }, [currentPage, hasInteracted]);
-
             // Event handlers
             const handleFirstInteraction = () => {
                 setHasInteracted(true);
@@ -397,6 +383,7 @@ React.useEffect(() => {
         }
     }
 };
+
             const handleTouchStart = (e) => {
                 touchStartRef.current = e.touches[0].clientX;
             };
