@@ -319,25 +319,42 @@
                     setShowPrompt(true);
                 }
             }, []);
+React.useEffect(() => {
+    const audioElement = audioRef.current;
 
-            React.useEffect(() => {
-                const audioElement = audioRef.current;
+    const playNewAudio = async () => {
+        try {
+            if (audioElement && hasInteracted) {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                audioElement.src = pages[currentPage].audioSrc;
+                audioElement.onerror = () => handleMissingAudio(audioElement);
+                setIsAudioPlaying(true);
+                await audioElement.play();
+            }
+        } catch (error) {
+            console.error('Audio playback failed:', error);
+            setIsAudioPlaying(false);
+        }
+    };
 
-                const playNewAudio = async () => {
-                    try {
-                        if (audioElement && hasInteracted) {
-                            audioElement.pause();
-                            audioElement.currentTime = 0;
-                            audioElement.src = pages[currentPage].audioSrc;
-                            audioElement.onerror = () => handleMissingAudio(audioElement);
-                            setIsAudioPlaying(true);
-                            await audioElement.play();
-                        }
-                    } catch (error) {
-                        console.error('Audio playback failed:', error);
-                        setIsAudioPlaying(false);
-                    }
-                };
+    const handleAudioEnd = () => setIsAudioPlaying(false);
+
+    if (audioElement) {
+        audioElement.addEventListener('ended', handleAudioEnd);
+        // Only play audio if we haven't just manually triggered it
+        if (!isAudioPlaying) {
+            playNewAudio();
+        }
+    }
+
+    return () => {
+        if (audioElement) {
+            audioElement.removeEventListener('ended', handleAudioEnd);
+            audioElement.pause();
+        }
+    };
+}, [currentPage, hasInteracted, isAudioPlaying]);
 
                 const handleAudioEnd = () => setIsAudioPlaying(false);
 
@@ -365,15 +382,21 @@
             };
 
             const changePage = (newPage) => {
-                if (newPage >= 0 && newPage < pages.length) {
-                    if (audioRef.current) {
-                        audioRef.current.pause();
-                        audioRef.current.currentTime = 0;
-                    }
-                    setCurrentPage(newPage);
-                }
-            };
-
+    if (newPage >= 0 && newPage < pages.length) {
+        // Even if it's the same page, restart the audio
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+        setCurrentPage(newPage);
+        // Add immediate audio playback
+        if (audioRef.current) {
+            audioRef.current.src = pages[newPage].audioSrc;
+            audioRef.current.play().catch(console.error);
+            setIsAudioPlaying(true);
+        }
+    }
+};
             const handleTouchStart = (e) => {
                 touchStartRef.current = e.touches[0].clientX;
             };
