@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Interactive Children's Book</title>
+    
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+        /* Base styles */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        * {
+            -webkit-user-select: none;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        /* Layout styles */
+        .book-container {
+            display: flex;
+            height: 100vh;
+            background: #f3f4f6;
+            position: relative;
+        }
+
+        .main-content {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(to bottom,
+        #87CEEB 0%,      /* Sky blue at top */
+        #FFB6C1 50%,     /* Light pink in middle */
+        #98FB98 100%     /* Light green at bottom */
+    );
+        }
+
+        .page-image {
+    width: auto;         /* Changed from 100% */
+    height: 100%;
+    max-width: 100%;     /* Added to ensure it doesn't overflow */
+    object-fit: contain;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+        .page-text {
+    position: absolute;
+    bottom: 20%;  /* Changed from 45% to 20% */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 1rem;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.2),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+    text-shadow: 
+        2px 2px 0 #fff,
+        4px 4px 0 rgba(0, 0, 0, 0.2);
+    border: 3px solid #ff69b4;
+    animation: float 2s ease-in-out infinite;
+    z-index: 10;
+}
+
+        .interaction-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 4px solid #ff69b4;
+            z-index: 100;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+
+        .interaction-prompt img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .interaction-prompt-text {
+            font-size: 2rem;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .nav-bar {
+            width: 6rem;
+            background: #fce7f3;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-button {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-button.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 3px #ec4899;
+        }
+
+        .nav-button:hover:not(.active) {
+            box-shadow: 0 0 0 2px #fbcfe8;
+        }
+
+        .nav-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .audio-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            border: none;
+            border-radius: 9999px;
+            padding: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 20;
+        }
+
+        .audio-button:hover {
+            opacity: 1;
+        }
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: none;
+            border-radius: 9999px;
+            padding: 1rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+
+        .nav-arrow:hover {
+            opacity: 1;
+        }
+
+        .nav-arrow.prev {
+            left: 1rem;
+        }
+
+        .nav-arrow.next {
+            right: 1rem;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Utility functions
+        function handleMissingImage(event) {
+            console.warn(`Failed to load image: ${event.target.src}`);
+            event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZjZTdmMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiNlYzQ4OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+';
+        }
+
+        function handleMissingAudio(audioElement) {
+            console.warn(`Failed to load audio: ${audioElement.src}`);
+            audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        }
+
+        // Main component
+        function InteractiveBook() {
+            // State management
+            const [currentPage, setCurrentPage] = React.useState(0);
+            const [isAudioPlaying, setIsAudioPlaying] = React.useState(false);
+            const [hasInteracted, setHasInteracted] = React.useState(false);
+            const [showPrompt, setShowPrompt] = React.useState(true);
+            
+            // Refs
+            const audioRef = React.useRef(null);
+            const touchStartRef = React.useRef(null);
+
+            // Book content
+            const pages = [
+                {
+                    id: 1,
+                    title: "I'm a Pig. Oink Oink!",
+                    image: "images/barn_pig.webp",
+                    audioSrc: "audio/pig.mp3",
+                    icon: "images/icons/pig.webp"
+                },
+                {
+                    id: 2,
+                    title: "I'm a Duck, Quack Quack",
+                    image: "images/barn_duck.webp",
+                    audioSrc: "audio/duck.mp3",
+                    icon: "images/icons/duck.webp"
+                },
+                {
+                    id: 3,
+                    title: "I'm a Cow. Mooo",
+                    image: "images/barn_cow.webp",
+                    audioSrc: "audio/cow.mp3",
+                    icon: "images/icons/cow.webp"
+                },
+                {
+                    id: 4,
+                    title: "I'm a Horse. Neigh",
+                    image: "images/barn_horse.webp",
+                    audioSrc: "audio/horse.mp3",
+                    icon: "images/icons/horse.webp"
+                }
+            ];
+
+            // Effects
+            React.useEffect(() => {
+                const hasVisited = localStorage.getItem('hasVisited');
+                if (hasVisited) {
+                    setShowPrompt(false);
+                }
+            }, []);
+
+            React.useEffect(() => {
+                const audioElement = audioRef.current;
+
+                const playNewAudio = async () => {
+                    try {
+                        if (audioElement && hasInteracted) {
+                            audioElement.pause();
+                            audioElement.currentTime = 0;
+                            audioElement.src = pages[currentPage].audioSrc;
+                            audioElement.onerror = () => handleMissingAudio(audioElement);
+                            setIsAudioPlaying(true);
+                            await audioElement.play();
+                        }
+                    } catch (error) {
+                        console.error('Audio playback failed:', error);
+                        setIsAudioPlaying(false);
+                    }
+                };
+
+                const handleAudioEnd = () => setIsAudioPlaying(false);
+
+                if (audioElement) {
+                    audioElement.addEventListener('ended', handleAudioEnd);
+                    playNewAudio();
+                }
+
+                return () => {
+                    if (audioElement) {
+                        audioElement.removeEventListener('ended', handleAudioEnd);
+                        audioElement.pause();
+                    }
+                };
+            }, [currentPage, hasInteracted]);
+
+            // Event handlers
+            const handleFirstInteraction = () => {
+                setHasInteracted(true);
+                setShowPrompt(false);
+                localStorage.setItem('hasVisited', 'true');
+                if (audioRef.current) {
+                    audioRef.current.play().catch(console.error);
+                }
+            };
+
+            const changePage = (newPage) => {
+                if (newPage >= 0 && newPage < pages.length) {
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        audioRef.current.currentTime = 0;
+                    }
+                    setCurrentPage(newPage);
+                }
+            };
+
+            const handleTouchStart = (e) => {
+                touchStartRef.current = e.touches[0].clientX;
+            };
+
+            const handleTouchEnd = (e) => {
+                if (!touchStartRef.current) return;
+
+                const touchEnd = e.changedTouches[0].clientX;
+                const distance = touchStartRef.current - touchEnd;
+
+                if (Math.abs(distance) > 50) {
+                    if (distance > 0 && currentPage < pages.length - 1) {
+                        changePage(currentPage + 1);
+                    } else if (distance < 0 && currentPage > 0) {
+                        changePage(currentPage - 1);
+                    }
+                }
+                touchStartRef.current = null;
+            };
+
+            const handleTap = () => {
+                if (!hasInteracted) {
+                    handleFirstInteraction();
+                } else if (currentPage < pages.length - 1) {
+                    changePage(currentPage + 1);
+                } else {
+                    changePage(0);
+                }
+            };
+
+            const replayAudio = (e) => {
+                e.stopPropagation();
+                if (audioRef.current && !isAudioPlaying) {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play().catch(console.error);
+                    setIsAudioPlaying(true);
+                }
+            };
+
+            // Render
+            return (
+                <div className="book-container">
+                    {showPrompt && (
+                        <div 
+                            className="interaction-prompt"
+                            onClick={handleFirstInteraction}
+                        >
+                            <img 
+                                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDc4LjQgMjM1LjhjLTI4LjQtMjguNC03NC45LTI4LjQtMTAzLjMgMGwtMjUuNiAyNS42di03Ni44YzAtNDEuOC0zMy45LTc1LjctNzUuNy03NS43LTQxLjggMC03NS43IDMzLjktNzUuNyA3NS43djc2LjhsLTI1LjYtMjUuNmMtMjguNC0yOC40LTc0LjktMjguNC0xMDMuMyAwLTI4LjQgMjguNC0yOC40IDc0LjkgMCAxMDMuM2wxNzkuMiAxNzkuMmMyOC40IDI4LjQgNzQuOSAyOC40IDEwMy4zIDBsMTc5LjItMTc5LjJjMjguNC0yOC40IDI4LjQtNzQuOSAwLTEwMy4zeiIgZmlsbD0iI2ZmNjliNCIvPjwvc3ZnPg=="
+                                alt="Tap here"
+                            />
+                            <div className="interaction-prompt-text">
+                                Tap to Start!
+                            </div>
+                        </div>
+                    )}
+                    
+                    <div 
+                        className="main-content"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                        onClick={handleTap}
+                    >
+                        <img
+                            src={pages[currentPage].image}
+                            alt={pages[currentPage].title}
+                            className="page-image"
+                            draggable="false"
+                            onError={handleMissingImage}
+                        />
+                        
+                        <div className="page-text">
+                            {pages[currentPage].title}
+                        </div>
+
+                        <button 
+                            className="audio-button"
+                            onClick={replayAudio}
+                        >
+                            {isAudioPlaying ? '🔊' : '🔁'}
+                        </button>
+
+                        {currentPage > 0 && (
+                            <button 
+                                className="nav-arrow prev"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    changePage(currentPage - 1);
+                                }}
+                            >
+                                ◀
+                            </button>
+                        )}
+                        
+                        {currentPage < pages.length - 1 && (
+                            <button 
+                                className="nav-arrow next"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    changePage(currentPage + 1);
+                                }}
+                            >
+                                ▶
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="nav-bar">
+                        {pages.map((page, index) => (
+                            <button
+                                key={page.id}
+                                className={`nav-button ${currentPage === index ? 'active' : ''}`}
+                                onClick={() => changePage(index)}
+                            >
+                                <img
+                                    src={page.icon}
+                                    alt={`Page ${index + 1}`}
+                                    draggable="false"
+                                    onError={handleMissingImage}
+                                />
+                            </button>
+                        ))}
+                    </div>
+
+                    <audio ref={audioRef} />
+                </div>
+            );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<InteractiveBook />);
+    </script>
+</body>
+</html>
