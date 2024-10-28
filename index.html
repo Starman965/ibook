@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Naomi's Barnyard Friends</title>
     
-    <!-- React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
     <style>
-        /* Base styles */
         html, body {
             margin: 0;
             padding: 0;
@@ -29,7 +26,6 @@
             box-sizing: border-box;
         }
 
-        /* Layout styles */
         .book-container {
             display: flex;
             height: 100vh;
@@ -38,68 +34,69 @@
         }
 
         .main-content {
-    position: relative;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    background: linear-gradient(to bottom,
-        #87CEEB 0%,      /* Sky blue at top */
-        #FFB6C1 50%,     /* Light pink in middle */
-        #98FB98 100%     /* Light green at bottom */
-    );
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(to bottom,
+                #87CEEB 0%,
+                #FFB6C1 50%,
+                #98FB98 100%
+            );
         }
 
         .page-image {
-    width: auto;      
-    height: 100%;
-    max-width: 100%;    
-    object-fit: contain;
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
+            width: auto;      
+            height: 100%;
+            max-width: 100%;    
+            object-fit: contain;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
 
         .page-text {
-    position: absolute;
-    bottom: 20%; 
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 1rem;
-    box-shadow: 
-        0 4px 8px rgba(0, 0, 0, 0.2),
-        0 8px 16px rgba(0, 0, 0, 0.1);
-    text-shadow: 
-        2px 2px 0 #fff,
-        4px 4px 0 rgba(0, 0, 0, 0.2);
-    border: 3px solid #ff69b4;
-    animation: float 2s ease-in-out infinite;
-    z-index: 10;
-}
+            position: absolute;
+            bottom: 20%; 
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 1rem;
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            text-shadow: 
+                2px 2px 0 #fff,
+                4px 4px 0 rgba(0, 0, 0, 0.2);
+            border: 3px solid #ff69b4;
+            animation: float 2s ease-in-out infinite;
+            z-index: 10;
+        }
 
         .interaction-prompt {
-    position: fixed;  /* Change from absolute to fixed */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    text-align: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    border: 4px solid #ff69b4;
-    z-index: 1000;  /* Increase z-index */
-    animation: pulse 2s infinite;
-    cursor: pointer;
-    width: 300px;  /* Add fixed width */
-    height: auto;   /* Add auto height */
-}
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 4px solid #ff69b4;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            width: 300px;
+            height: auto;
+        }
+
         .interaction-prompt img {
             width: 100px;
             height: 100px;
@@ -214,7 +211,7 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
+    <script>
         // Utility functions
         function handleMissingImage(event) {
             console.warn(`Failed to load image: ${event.target.src}`);
@@ -226,124 +223,124 @@
             audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
         }
 
+        // Book content
+        const pages = [
+            {
+                id: 1,
+                title: "I'm a Pig. Oink Oink",
+                image: "images/barn_pig.webp",
+                audioSrc: "audio/pig.mp3",
+                icon: "images/icons/pig.webp"
+            },
+            {
+                id: 2,
+                title: "I'm a Duck, Quack Quack",
+                image: "images/barn_duck.webp",
+                audioSrc: "audio/duck.mp3",
+                icon: "images/icons/duck.webp"
+            },
+            {
+                id: 3,
+                title: "I'm a Cow. Mooo Mooo",
+                image: "images/barn_cow.webp",
+                audioSrc: "audio/cow.mp3",
+                icon: "images/icons/cow.webp"
+            },
+            {
+                id: 4,
+                title: "I'm a Horse. Neigh Neigh",
+                image: "images/barn_horse.webp",
+                audioSrc: "audio/horse.mp3",
+                icon: "images/icons/horse.webp"
+            },
+            {
+                id: 5,
+                title: "I'm a Chicken. Cluck Cluck",
+                image: "images/barn_chicken.webp",
+                audioSrc: "audio/chicken.mp3",
+                icon: "images/icons/chicken.webp"
+            },
+            {
+                id: 6,
+                title: "I'm a Frog. Ribbet Ribbit",
+                image: "images/barn_frog.webp",
+                audioSrc: "audio/frog.mp3",
+                icon: "images/icons/frog.webp"
+            },
+            {
+                id: 7,
+                title: "I'm a Cat. Meow Meow",
+                image: "images/CE8C882C-CB6B-4A6F-A96A-68C727A3A491.png",
+                audioSrc: "audio/cat.mp3",
+                icon: "images/icons/cat.png"
+            },
+            {
+                id: 8,
+                title: "I'm a Sheep. Baaaa Baaaa",
+                image: "images/670E5D73-96A6-428D-B49C-FAB76B269A79.png",
+                audioSrc: "audio/sheep.mp3",
+                icon: "images/icons/sheep.png"
+            },
+            {
+                id: 9,
+                title: "I'm a Dog. Ruff Ruff",
+                image: "images/AF5BB861-6AF8-4297-B4F4-C6969F171046.png",
+                audioSrc: "audio/dog.mp3",
+                icon: "images/icons/dog.png"
+            },
+            {
+                id: 10,
+                title: "I'm an Itsy Bitsy Spider. Won't You Sing With Me?",
+                image: "images/4FA404CB-BA3F-487C-AC10-510D80C762D8.png",
+                audioSrc: "audio/spider.mp3",
+                icon: "images/icons/spider.png"
+            }
+        ];
+
         // Main component
         function InteractiveBook() {
-            // State management
-            const [currentPage, setCurrentPage] = React.useState(0);
-            const [isAudioPlaying, setIsAudioPlaying] = React.useState(false);
-            const [hasInteracted, setHasInteracted] = React.useState(false);
-            const [showPrompt, setShowPrompt] = React.useState(true);
+            const { useState, useEffect, useRef } = React;
             
-            // Refs
-            const audioRef = React.useRef(null);
-            const touchStartRef = React.useRef(null);
+            const [currentPage, setCurrentPage] = useState(0);
+            const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+            const [hasInteracted, setHasInteracted] = useState(false);
+            const [showPrompt, setShowPrompt] = useState(true);
+            
+            const audioRef = useRef(null);
+            const touchStartRef = useRef(null);
 
-            // Book content
-            const pages = [
-                {
-                    id: 1,
-                    title: "I'm a Pig. Oink Oink",
-                    image: "images/barn_pig.webp",
-                    audioSrc: "audio/pig.mp3",
-                    icon: "images/icons/pig.webp"
-                },
-                {
-                    id: 2,
-                    title: "I'm a Duck, Quack Quack",
-                    image: "images/barn_duck.webp",
-                    audioSrc: "audio/duck.mp3",
-                    icon: "images/icons/duck.webp"
-                },
-                {
-                    id: 3,
-                    title: "I'm a Cow. Mooo Mooo",
-                    image: "images/barn_cow.webp",
-                    audioSrc: "audio/cow.mp3",
-                    icon: "images/icons/cow.webp"
-                },
-                {
-                    id: 4,
-                    title: "I'm a Horse. Neigh Neigh",
-                    image: "images/barn_horse.webp",
-                    audioSrc: "audio/horse.mp3",
-                    icon: "images/icons/horse.webp"
-                },
-                {
-                    id: 5,
-                    title: "I'm a Chicken. Cluck Cluck",
-                    image: "images/barn_chicken.webp",
-                    audioSrc: "audio/chicken.mp3",
-                    icon: "images/icons/chicken.webp"
-                },
-                {
-                    id: 6,
-                    title: "I'm a Frog. Ribbet Ribbit",
-                    image: "images/barn_frog.webp",
-                    audioSrc: "audio/frog.mp3",
-                    icon: "images/icons/frog.webp"
-                },
-            
-                {
-                    id: 7,
-                    title: "I'm a Cat. Meow Meow",
-                    image: "images/CE8C882C-CB6B-4A6F-A96A-68C727A3A491.png",
-                    audioSrc: "audio/cat.mp3",
-                    icon: "images/icons/cat.png"
-                },
-                {
-                    id: 8,
-                    title: "I'm a Sheep. Baaaa Baaaa",
-                    image: "images/670E5D73-96A6-428D-B49C-FAB76B269A79.png",
-                    audioSrc: "audio/sheep.mp3",
-                    icon: "images/icons/sheep.png"
-                },
-                {
-                    id: 9,
-                    title: "I'm a Dog. Ruff Ruff",
-                    image: "images/AF5BB861-6AF8-4297-B4F4-C6969F171046.png",
-                    audioSrc: "audio/dog.mp3",
-                    icon: "images/icons/dog.png"
-                },
-                {
-                    id: 10,
-                    title: "I'm an Itsy Bitsy Spider. Won't You Sing With Me?",
-                    image: "images/4FA404CB-BA3F-487C-AC10-510D80C762D8.png",
-                    audioSrc: "audio/spider.mp3",
-                    icon: "images/icons/spider.png"
-                },
-            ];
-            // Effects
-            React.useEffect(() => {
+            const playAudio = async () => {
+                try {
+                    if (audioRef.current && hasInteracted) {
+                        audioRef.current.pause();
+                        audioRef.current.currentTime = 0;
+                        audioRef.current.src = pages[currentPage].audioSrc;
+                        audioRef.current.onerror = () => handleMissingAudio(audioRef.current);
+                        setIsAudioPlaying(true);
+                        await audioRef.current.play();
+                    }
+                } catch (error) {
+                    console.error('Audio playback failed:', error);
+                    setIsAudioPlaying(false);
+                }
+            };
+
+            useEffect(() => {
                 const hasVisited = localStorage.getItem('hasVisited');
                 if (hasVisited) {
                     setShowPrompt(true);
                 }
             }, []);
 
-            React.useEffect(() => {
+            useEffect(() => {
                 const audioElement = audioRef.current;
-
-                const playNewAudio = async () => {
-                    try {
-                        if (audioElement && hasInteracted) {
-                            audioElement.pause();
-                            audioElement.currentTime = 0;
-                            audioElement.src = pages[currentPage].audioSrc;
-                            audioElement.onerror = () => handleMissingAudio(audioElement);
-                            setIsAudioPlaying(true);
-                            await audioElement.play();
-                        }
-                    } catch (error) {
-                        console.error('Audio playback failed:', error);
-                        setIsAudioPlaying(false);
-                    }
-                };
-
                 const handleAudioEnd = () => setIsAudioPlaying(false);
 
                 if (audioElement) {
                     audioElement.addEventListener('ended', handleAudioEnd);
-                    playNewAudio();
+                    if (hasInteracted) {
+                        playAudio();
+                    }
                 }
 
                 return () => {
@@ -354,23 +351,24 @@
                 };
             }, [currentPage, hasInteracted]);
 
-            // Event handlers
             const handleFirstInteraction = () => {
                 setHasInteracted(true);
                 setShowPrompt(false);
                 localStorage.setItem('hasVisited', 'true');
-                if (audioRef.current) {
-                    audioRef.current.play().catch(console.error);
-                }
+                playAudio();
             };
 
             const changePage = (newPage) => {
                 if (newPage >= 0 && newPage < pages.length) {
-                    if (audioRef.current) {
-                        audioRef.current.pause();
-                        audioRef.current.currentTime = 0;
+                    if (newPage === currentPage) {
+                        playAudio();
+                    } else {
+                        if (audioRef.current) {
+                            audioRef.current.pause();
+                            audioRef.current.currentTime = 0;
+                        }
+                        setCurrentPage(newPage);
                     }
-                    setCurrentPage(newPage);
                 }
             };
 
@@ -404,116 +402,94 @@
                 }
             };
 
-         const replayAudio = (e) => {
-    e.stopPropagation();
+            const replayAudio = (e) => {
+                e.stopPropagation();
+                playAudio();
+            };
 
-    // Check if audio is already playing; if it is, ignore the tap
-    if (!audioRef.current.paused) {
-        return;
-    }
+            return React.createElement('div', { className: 'book-container' },
+            showPrompt && React.createElement('div', {
+                    className: 'interaction-prompt',
+                    onClick: handleFirstInteraction
+                },
+                    React.createElement('img', {
+                        src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDc4LjQgMjM1LjhjLTI4LjQtMjguNC03NC45LTI4LjQtMTAzLjMgMGwtMjUuNiAyNS42di03Ni44YzAtNDEuOC0zMy45LTc1LjctNzUuNy03NS43LTQxLjggMC03NS43IDMzLjktNzUuNyA3NS43djc2LjhsLTI1LjYtMjUuNmMtMjguNC0yOC40LTc0LjktMjguNC0xMDMuMyAwLTI4LjQgMjguNC0yOC40IDc0LjkgMCAxMDMuM2wxNzkuMiAxNzkuMmMyOC40IDI4LjQgNzQuOSAyOC40IDEwMy4zIDBsMTc5LjItMTc5LjJjMjguNC0yOC40IDI4LjQtNzQuOSAwLTEwMy4zeiIgZmlsbD0iI2ZmNjliNCIvPjwvc3ZnPg==',
+                        alt: 'Tap here'
+                    }),
+                    React.createElement('div', {
+                        className: 'interaction-prompt-text'
+                    }, 'Tap to Start!')
+                ),
 
-    // Reset audio and play from the start
-    if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(console.error);
-        setIsAudioPlaying(true);
-    }
-};
-
-
-            // Render
-            return (
-                <div className="book-container">
-                    {showPrompt && (
-                        <div 
-                            className="interaction-prompt"
-                            onClick={handleFirstInteraction}
-                        >
-                            <img 
-                                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBkPSJNNDc4LjQgMjM1LjhjLTI4LjQtMjguNC03NC45LTI4LjQtMTAzLjMgMGwtMjUuNiAyNS42di03Ni44YzAtNDEuOC0zMy45LTc1LjctNzUuNy03NS43LTQxLjggMC03NS43IDMzLjktNzUuNyA3NS43djc2LjhsLTI1LjYtMjUuNmMtMjguNC0yOC40LTc0LjktMjguNC0xMDMuMyAwLTI4LjQgMjguNC0yOC40IDc0LjkgMCAxMDMuM2wxNzkuMiAxNzkuMmMyOC40IDI4LjQgNzQuOSAyOC40IDEwMy4zIDBsMTc5LjItMTc5LjJjMjguNC0yOC40IDI4LjQtNzQuOSAwLTEwMy4zeiIgZmlsbD0iI2ZmNjliNCIvPjwvc3ZnPg=="
-                                alt="Tap here"
-                            />
-                            <div className="interaction-prompt-text">
-                                Tap to Start!
-                            </div>
-                        </div>
-                    )}
+                React.createElement('div', {
+                    className: 'main-content',
+                    onTouchStart: handleTouchStart,
+                    onTouchEnd: handleTouchEnd,
+                    onClick: handleTap
+                },
+                    React.createElement('img', {
+                        src: pages[currentPage].image,
+                        alt: pages[currentPage].title,
+                        className: 'page-image',
+                        draggable: 'false',
+                        onError: handleMissingImage
+                    }),
                     
-                    <div 
-                        className="main-content"
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
-                        onClick={handleTap}
-                    >
-                        <img
-                            src={pages[currentPage].image}
-                            alt={pages[currentPage].title}
-                            className="page-image"
-                            draggable="false"
-                            onError={handleMissingImage}
-                        />
-                        
-                        <div className="page-text">
-                            {pages[currentPage].title}
-                        </div>
+                    React.createElement('div', {
+                        className: 'page-text'
+                    }, pages[currentPage].title),
 
-                        <button 
-                            className="audio-button"
-                            onClick={replayAudio}
-                        >
-                            {isAudioPlaying ? '🔊' : '🔁'}
-                        </button>
+                    React.createElement('button', {
+                        className: 'audio-button',
+                        onClick: replayAudio
+                    }, isAudioPlaying ? '🔊' : '🔁'),
 
-                        {currentPage > 0 && (
-                            <button 
-                                className="nav-arrow prev"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    changePage(currentPage - 1);
-                                }}
-                            >
-                                ◀
-                            </button>
-                        )}
-                        
-                        {currentPage < pages.length - 1 && (
-                            <button 
-                                className="nav-arrow next"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    changePage(currentPage + 1);
-                                }}
-                            >
-                                ▶
-                            </button>
-                        )}
-                    </div>
+                    currentPage > 0 && React.createElement('button', {
+                        className: 'nav-arrow prev',
+                        onClick: (e) => {
+                            e.stopPropagation();
+                            changePage(currentPage - 1);
+                        }
+                    }, '◀'),
 
-                    <div className="nav-bar">
-                        {pages.map((page, index) => (
-                            <button
-                                key={page.id}
-                                className={`nav-button ${currentPage === index ? 'active' : ''}`}
-                                onClick={() => changePage(index)}
-                            >
-                                <img
-                                    src={page.icon}
-                                    alt={`Page ${index + 1}`}
-                                    draggable="false"
-                                    onError={handleMissingImage}
-                                />
-                            </button>
-                        ))}
-                    </div>
+                    currentPage < pages.length - 1 && React.createElement('button', {
+                        className: 'nav-arrow next',
+                        onClick: (e) => {
+                            e.stopPropagation();
+                            changePage(currentPage + 1);
+                        }
+                    }, '▶')
+                ),
 
-                    <audio ref={audioRef} />
-                </div>
+                React.createElement('div', {
+                    className: 'nav-bar'
+                }, pages.map((page, index) => 
+                    React.createElement('button', {
+                        key: page.id,
+                        className: `nav-button ${currentPage === index ? 'active' : ''}`,
+                        onClick: (e) => {
+                            e.stopPropagation();
+                            changePage(index);
+                        }
+                    },
+                        React.createElement('img', {
+                            src: page.icon,
+                            alt: `Page ${index + 1}`,
+                            draggable: 'false',
+                            onError: handleMissingImage
+                        })
+                    )
+                )),
+
+                React.createElement('audio', {
+                    ref: audioRef
+                })
             );
         }
 
-        // Render the app
+        // Mount the application
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<InteractiveBook />);
+        root.render(React.createElement(InteractiveBook));
     </script>
 </body>
 </html>
