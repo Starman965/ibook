@@ -167,11 +167,145 @@
             border-color: #1a73e8;
             background-color: #f8f9fa;
         }
+        
+        /* New styles for page management */
+        .pages-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .pages-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .page-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .page-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-control-btn {
+            padding: 5px 10px;
+            background-color: #f0f2f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .page-control-btn:hover {
+            background-color: #e8eaed;
+        }
+
+        .asset-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .asset-upload {
+            border: 2px dashed #ddd;
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .asset-upload:hover {
+            border-color: #1a73e8;
+            background-color: #f8f9fa;
+        }
+
+        .asset-preview {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .audio-preview {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .page-text {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 15px;
+            resize: vertical;
+        }
+
+        .add-page-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-page-btn:hover {
+            background-color: #1557b0;
+        }
+
+        .add-page-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* iPad-specific optimizations */
+        @media (pointer: coarse) {
+            .page-control-btn {
+                padding: 10px 15px; /* Larger touch targets */
+            }
+
+            .asset-upload {
+                min-height: 150px; /* Larger drop zones */
+            }
+
+            input, textarea, button {
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Left Panel -->
+        <!-- Left Panel (existing) -->
         <div class="books-panel">
             <h2>Interactive Books</h2>
             <button class="add-book-btn">+ New Book</button>
@@ -182,6 +316,7 @@
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Book Editor (existing) -->
             <div class="book-editor">
                 <h3>Book Editor</h3>
                 <div class="form-group">
@@ -196,7 +331,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="pages-grid">
+            </div>
+
+            <!-- Pages Section (new) -->
+            <div class="pages-section">
+                <div class="pages-header">
+                    <h3>Pages</h3>
+                    <button class="add-page-btn" id="add-page-btn">Add Page</button>
+                </div>
+                <div id="pages-container">
                     <!-- Pages will be dynamically added here -->
                 </div>
             </div>
