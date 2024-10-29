@@ -79,7 +79,6 @@
             font-weight: bold;
         }
 
-        /* Loading state */
         .loading {
             text-align: center;
             padding: 40px;
@@ -87,7 +86,6 @@
             color: #666;
         }
 
-        /* No books state */
         .no-books {
             text-align: center;
             padding: 40px;
@@ -95,7 +93,6 @@
             color: #666;
         }
 
-        /* iPad optimizations */
         @media (hover: none) {
             .book-card {
                 transform: none !important;
@@ -162,9 +159,9 @@
                 </div>
             `;
             
-            // Add click handler to open the book
+            // Add click handler to open the book with its ID
             bookCard.addEventListener('click', () => {
-                window.location.href = `./${book.title.toLowerCase().replace(/\s+/g, '')}.html`;
+                window.location.href = `./book.html?id=${bookId}`;
             });
             
             return bookCard;
