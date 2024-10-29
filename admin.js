@@ -30,15 +30,12 @@ const addBookBtn = document.querySelector('.add-book-btn');
 const bookTitleInput = document.getElementById('book-title');
 const coverUpload = document.getElementById('cover-upload');
 const coverPreview = coverUpload.querySelector('.asset-preview');
-// Additional DOM Elements
 const pagesContainer = document.getElementById('pages-container');
 const addPageBtn = document.getElementById('add-page-btn');
-
 
 // State management
 let selectedBookId = null;
 let currentBook = null;
-// Extended state management
 let currentPages = {};
 
 // Show save indicator
@@ -80,152 +77,25 @@ function renderBookList(books) {
     Object.entries(books).forEach(([id, book]) => {
         const li = document.createElement('li');
         li.className = `book-item ${selectedBookId === id ? 'selected' : ''}`;
-        li.dataset.id = id; // Add this line to store the ID
+        li.dataset.id = id;
         li.innerHTML = `
             <span>${book.title || 'Untitled Book'}</span>
-            <span class="status-badge status-${book.status || 'draft'}">${book.status || 'draft'}</span>
+            <span class="status-badge status-${book.status || 'draft'}" data-id="${id}">
+                ${book.status || 'draft'}
+            </span>
         `;
         li.addEventListener('click', () => selectBook(id));
+        
+        // Add click handler for status badge
+        const statusBadge = li.querySelector('.status-badge');
+        statusBadge.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBookStatus(id);
+        });
+        
         bookList.appendChild(li);
     });
 }
-
-// Select a book
-async function selectBook(bookId) {
-    console.log('Selecting book:', bookId);
-    selectedBookId = bookId;
-    const bookRef = ref(database, `books/${bookId}`);
-    const snapshot = await get(bookRef);
-    currentBook = snapshot.val();
-    
-    // Update UI
-    bookTitleInput.value = currentBook.title || '';
-    updateCoverPreview(currentBook.coverUrl);
-    
-    // Update selected state in list
-    document.querySelectorAll('.book-item').forEach(item => {
-        item.classList.remove('selected');
-        if (item.dataset.id === bookId) {
-            item.classList.add('selected');
-        }
-    });
-}
-
-// Update cover preview
-function updateCoverPreview(url) {
-    if (url) {
-        coverPreview.innerHTML = `<img src="${url}" alt="Book cover">`;
-    } else {
-        coverPreview.innerHTML = '<span>Drop cover image here or click to upload</span>';
-    }
-}
-
-// Create new book
-async function createNewBook() {
-    console.log('Creating new book...');
-    const booksRef = ref(database, 'books');
-    const newBookRef = push(booksRef);
-    const newBook = {
-        title: 'Untitled Book',
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        pages: {}
-    };
-    
-    await set(newBookRef, newBook);
-    showSaveIndicator('Book created!');
-    selectBook(newBookRef.key);
-}
-
-// Update book title
-async function updateBookTitle(title) {
-    if (!selectedBookId) return;
-    console.log('Updating book title:', title);
-    const updates = {
-        [`books/${selectedBookId}/title`]: title
-    };
-    await update(ref(database), updates);
-    showSaveIndicator();
-}
-
-// Upload file to Firebase Storage
-async function uploadFile(file, path) {
-    console.log('Uploading file:', path);
-    const fileRef = storageRef(storage, path);
-    try {
-        const snapshot = await uploadBytes(fileRef, file);
-        console.log('File uploaded successfully');
-        const url = await getDownloadURL(fileRef);
-        console.log('Download URL:', url);
-        return url;
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        throw error;
-    }
-}
-
-// Handle file drop
-function handleDrop(e) {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    handleFileUpload(file);
-}
-
-// Handle file upload
-async function handleFileUpload(file) {
-    if (!file || !selectedBookId) return;
-    
-    try {
-        showSaveIndicator('Uploading cover...');
-        console.log('Handling file upload:', file.name);
-        const path = `books/${selectedBookId}/cover.jpg`;
-        const url = await uploadFile(file, path);
-        await update(ref(database), {
-            [`books/${selectedBookId}/coverUrl`]: url
-        });
-        updateCoverPreview(url);
-        showSaveIndicator('Cover uploaded!');
-    } catch (error) {
-        console.error('Error handling file upload:', error);
-        showSaveIndicator('Error uploading cover');
-    }
-}
-
-// Event Listeners
-addBookBtn.addEventListener('click', createNewBook);
-
-bookTitleInput.addEventListener('change', (e) => {
-    updateBookTitle(e.target.value);
-});
-
-// File upload event listeners
-coverUpload.addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            handleFileUpload(file);
-        }
-    };
-    input.click();
-});
-
-coverUpload.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    coverUpload.style.borderColor = '#1a73e8';
-});
-
-coverUpload.addEventListener('dragleave', () => {
-    coverUpload.style.borderColor = '#ddd';
-});
-
-coverUpload.addEventListener('drop', handleDrop);
-
-// Initialize the app
-console.log('Starting app initialization...');
-initializeBooksListener();
 
 // Page template function
 function createPageHTML(pageNumber, pageData = {}) {
@@ -263,6 +133,38 @@ function createPageHTML(pageNumber, pageData = {}) {
         </div>
     `;
 }
+// Select a book
+async function selectBook(bookId) {
+    console.log('Selecting book:', bookId);
+    selectedBookId = bookId;
+    const bookRef = ref(database, `books/${bookId}`);
+    const snapshot = await get(bookRef);
+    currentBook = snapshot.val();
+    
+    // Update UI
+    bookTitleInput.value = currentBook.title || '';
+    updateCoverPreview(currentBook.coverUrl);
+    
+    // Load and render pages
+    await loadPages();
+    
+    // Update selected state in list
+    document.querySelectorAll('.book-item').forEach(item => {
+        item.classList.remove('selected');
+        if (item.dataset.id === bookId) {
+            item.classList.add('selected');
+        }
+    });
+}
+
+// Update cover preview
+function updateCoverPreview(url) {
+    if (url) {
+        coverPreview.innerHTML = `<img src="${url}" alt="Book cover">`;
+    } else {
+        coverPreview.innerHTML = '<span>Drop cover image here or click to upload</span>';
+    }
+}
 
 // Load pages for selected book
 async function loadPages() {
@@ -288,6 +190,58 @@ function renderPages() {
     
     // Add event listeners to new elements
     attachPageEventListeners();
+}
+
+// Create new book
+async function createNewBook() {
+    console.log('Creating new book...');
+    const booksRef = ref(database, 'books');
+    const newBookRef = push(booksRef);
+    const newBook = {
+        title: 'Untitled Book',
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+        pages: {}
+    };
+    
+    await set(newBookRef, newBook);
+    showSaveIndicator('Book created!');
+    selectBook(newBookRef.key);
+}
+
+// Upload file to Firebase Storage
+async function uploadFile(file, path) {
+    console.log('Uploading file:', path);
+    const fileRef = storageRef(storage, path);
+    try {
+        const snapshot = await uploadBytes(fileRef, file);
+        console.log('File uploaded successfully');
+        const url = await getDownloadURL(fileRef);
+        console.log('Download URL:', url);
+        return url;
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+    }
+}
+
+// Handle file upload for cover
+async function handleCoverUpload(file) {
+    if (!file || !selectedBookId) return;
+    
+    try {
+        showSaveIndicator('Uploading cover...');
+        const path = `books/${selectedBookId}/cover.jpg`;
+        const url = await uploadFile(file, path);
+        await update(ref(database), {
+            [`books/${selectedBookId}/coverUrl`]: url
+        });
+        updateCoverPreview(url);
+        showSaveIndicator('Cover uploaded!');
+    } catch (error) {
+        console.error('Error uploading cover:', error);
+        showSaveIndicator('Error uploading cover');
+    }
 }
 
 // Add a new page
@@ -403,7 +357,30 @@ async function updatePageText(pageNumber, text) {
     });
 }
 
-// Attach event listeners to page elements
+// Toggle book status
+async function toggleBookStatus(bookId) {
+    if (!bookId) return;
+    
+    const newStatus = currentBook.status === 'published' ? 'draft' : 'published';
+    await update(ref(database), {
+        [`books/${bookId}/status`]: newStatus
+    });
+    
+    showSaveIndicator(`Book ${newStatus}!`);
+}
+
+// Update book title
+async function updateBookTitle(title) {
+    if (!selectedBookId) return;
+    console.log('Updating book title:', title);
+    const updates = {
+        [`books/${selectedBookId}/title`]: title
+    };
+    await update(ref(database), updates);
+    showSaveIndicator();
+}
+
+// Attach event listeners
 function attachPageEventListeners() {
     // Move page up/down
     document.querySelectorAll('.move-up, .move-down').forEach(button => {
@@ -441,20 +418,43 @@ function attachPageEventListeners() {
             
             input.click();
         });
-        
-        // Drag and drop
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.style.borderColor = '#1a73e8';
+    });
+    
+    // Page text updates
+    document.querySelectorAll('.page-text').forEach(textarea => {
+        textarea.addEventListener('change', (e) => {
+            const pageCard = e.target.closest('.page-card');
+            const pageNumber = parseInt(pageCard.dataset.page);
+            updatePageText(pageNumber, e.target.value);
         });
-        
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.style.borderColor = '#ddd';
-        });
-        
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.style.borderColor = '#ddd';
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                const pageCard = uploadZone.closest('.page-card');
+    });
+}
+
+// Book title input handler
+bookTitleInput.addEventListener('change', (e) => {
+    updateBookTitle(e.target.value);
+});
+
+// Cover upload handler
+coverUpload.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            handleCoverUpload(file);
+        }
+    };
+    input.click();
+});
+
+// Add new book handler
+addBookBtn.addEventListener('click', createNewBook);
+
+// Add new page handler
+addPageBtn.addEventListener('click', addPage);
+
+// Initialize the app
+console.log('Starting app initialization...');
+initializeBooksListener();
