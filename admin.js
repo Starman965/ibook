@@ -19,6 +19,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
 // Initialize Firebase
+console.log('Initializing Firebase...');
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const storage = getStorage(app);
@@ -28,16 +29,41 @@ const bookList = document.querySelector('.book-list');
 const addBookBtn = document.querySelector('.add-book-btn');
 const bookTitleInput = document.getElementById('book-title');
 const coverUpload = document.getElementById('cover-upload');
+const coverPreview = coverUpload.querySelector('.asset-preview');
 
 // State management
 let selectedBookId = null;
 let currentBook = null;
 
+// Show save indicator
+function showSaveIndicator(message = 'Saving...') {
+    const indicator = document.createElement('div');
+    indicator.style.position = 'fixed';
+    indicator.style.top = '20px';
+    indicator.style.right = '20px';
+    indicator.style.padding = '10px 20px';
+    indicator.style.backgroundColor = '#1a73e8';
+    indicator.style.color = 'white';
+    indicator.style.borderRadius = '4px';
+    indicator.style.zIndex = '1000';
+    indicator.textContent = message;
+    document.body.appendChild(indicator);
+    
+    setTimeout(() => {
+        indicator.textContent = 'Saved!';
+        setTimeout(() => {
+            document.body.removeChild(indicator);
+        }, 1000);
+    }, 500);
+}
+
 // Initialize books listener
 function initializeBooksListener() {
+    console.log('Setting up books listener...');
     const booksRef = ref(database, 'books');
     onValue(booksRef, (snapshot) => {
         const books = snapshot.val() || {};
+        console.log('Books updated:', books);
         renderBookList(books);
     });
 }
@@ -48,6 +74,7 @@ function renderBookList(books) {
     Object.entries(books).forEach(([id, book]) => {
         const li = document.createElement('li');
         li.className = `book-item ${selectedBookId === id ? 'selected' : ''}`;
+        li.dataset.id = id; // Add this line to store the ID
         li.innerHTML = `
             <span>${book.title || 'Untitled Book'}</span>
             <span class="status-badge status-${book.status || 'draft'}">${book.status || 'draft'}</span>
@@ -59,6 +86,7 @@ function renderBookList(books) {
 
 // Select a book
 async function selectBook(bookId) {
+    console.log('Selecting book:', bookId);
     selectedBookId = bookId;
     const bookRef = ref(database, `books/${bookId}`);
     const snapshot = await get(bookRef);
@@ -66,7 +94,7 @@ async function selectBook(bookId) {
     
     // Update UI
     bookTitleInput.value = currentBook.title || '';
-    // TODO: Load book pages and assets
+    updateCoverPreview(currentBook.coverUrl);
     
     // Update selected state in list
     document.querySelectorAll('.book-item').forEach(item => {
@@ -77,8 +105,18 @@ async function selectBook(bookId) {
     });
 }
 
+// Update cover preview
+function updateCoverPreview(url) {
+    if (url) {
+        coverPreview.innerHTML = `<img src="${url}" alt="Book cover">`;
+    } else {
+        coverPreview.innerHTML = '<span>Drop cover image here or click to upload</span>';
+    }
+}
+
 // Create new book
 async function createNewBook() {
+    console.log('Creating new book...');
     const booksRef = ref(database, 'books');
     const newBookRef = push(booksRef);
     const newBook = {
@@ -89,23 +127,62 @@ async function createNewBook() {
     };
     
     await set(newBookRef, newBook);
+    showSaveIndicator('Book created!');
     selectBook(newBookRef.key);
 }
 
 // Update book title
 async function updateBookTitle(title) {
     if (!selectedBookId) return;
+    console.log('Updating book title:', title);
     const updates = {
         [`books/${selectedBookId}/title`]: title
     };
     await update(ref(database), updates);
+    showSaveIndicator();
 }
 
 // Upload file to Firebase Storage
 async function uploadFile(file, path) {
+    console.log('Uploading file:', path);
     const fileRef = storageRef(storage, path);
-    await uploadBytes(fileRef, file);
-    return await getDownloadURL(fileRef);
+    try {
+        const snapshot = await uploadBytes(fileRef, file);
+        console.log('File uploaded successfully');
+        const url = await getDownloadURL(fileRef);
+        console.log('Download URL:', url);
+        return url;
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+    }
+}
+
+// Handle file drop
+function handleDrop(e) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    handleFileUpload(file);
+}
+
+// Handle file upload
+async function handleFileUpload(file) {
+    if (!file || !selectedBookId) return;
+    
+    try {
+        showSaveIndicator('Uploading cover...');
+        console.log('Handling file upload:', file.name);
+        const path = `books/${selectedBookId}/cover.jpg`;
+        const url = await uploadFile(file, path);
+        await update(ref(database), {
+            [`books/${selectedBookId}/coverUrl`]: url
+        });
+        updateCoverPreview(url);
+        showSaveIndicator('Cover uploaded!');
+    } catch (error) {
+        console.error('Error handling file upload:', error);
+        showSaveIndicator('Error uploading cover');
+    }
 }
 
 // Event Listeners
@@ -115,23 +192,31 @@ bookTitleInput.addEventListener('change', (e) => {
     updateBookTitle(e.target.value);
 });
 
+// File upload event listeners
 coverUpload.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = async (e) => {
+    input.onchange = (e) => {
         const file = e.target.files[0];
-        if (file && selectedBookId) {
-            const path = `books/${selectedBookId}/cover.jpg`;
-            const url = await uploadFile(file, path);
-            await update(ref(database), {
-                [`books/${selectedBookId}/coverUrl`]: url
-            });
-            // TODO: Update cover preview
+        if (file) {
+            handleFileUpload(file);
         }
     };
     input.click();
 });
 
+coverUpload.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    coverUpload.style.borderColor = '#1a73e8';
+});
+
+coverUpload.addEventListener('dragleave', () => {
+    coverUpload.style.borderColor = '#ddd';
+});
+
+coverUpload.addEventListener('drop', handleDrop);
+
 // Initialize the app
+console.log('Starting app initialization...');
 initializeBooksListener();
