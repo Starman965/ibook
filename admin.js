@@ -30,10 +30,16 @@ const addBookBtn = document.querySelector('.add-book-btn');
 const bookTitleInput = document.getElementById('book-title');
 const coverUpload = document.getElementById('cover-upload');
 const coverPreview = coverUpload.querySelector('.asset-preview');
+// Additional DOM Elements
+const pagesContainer = document.getElementById('pages-container');
+const addPageBtn = document.getElementById('add-page-btn');
+
 
 // State management
 let selectedBookId = null;
 let currentBook = null;
+// Extended state management
+let currentPages = {};
 
 // Show save indicator
 function showSaveIndicator(message = 'Saving...') {
@@ -220,3 +226,235 @@ coverUpload.addEventListener('drop', handleDrop);
 // Initialize the app
 console.log('Starting app initialization...');
 initializeBooksListener();
+
+// Page template function
+function createPageHTML(pageNumber, pageData = {}) {
+    return `
+        <div class="page-card" data-page="${pageNumber}">
+            <div class="page-header">
+                <span class="page-number">Page ${pageNumber}</span>
+                <div class="page-controls">
+                    ${pageNumber > 1 ? '<button class="page-control-btn move-up">↑</button>' : ''}
+                    ${pageNumber < Object.keys(currentPages).length ? '<button class="page-control-btn move-down">↓</button>' : ''}
+                    <button class="page-control-btn delete-page">×</button>
+                </div>
+            </div>
+            <div class="asset-section">
+                <div class="asset-upload" data-type="icon">
+                    <div class="asset-preview">
+                        ${pageData.iconUrl ? `<img src="${pageData.iconUrl}" alt="Icon">` : 'Drop icon here'}
+                    </div>
+                    <span>Icon</span>
+                </div>
+                <div class="asset-upload" data-type="scene">
+                    <div class="asset-preview">
+                        ${pageData.sceneUrl ? `<img src="${pageData.sceneUrl}" alt="Scene">` : 'Drop scene here'}
+                    </div>
+                    <span>Scene</span>
+                </div>
+                <div class="asset-upload" data-type="audio">
+                    <div class="asset-preview">
+                        ${pageData.audioUrl ? `<audio controls src="${pageData.audioUrl}" class="audio-preview"></audio>` : 'Drop audio here'}
+                    </div>
+                    <span>Audio</span>
+                </div>
+            </div>
+            <textarea class="page-text" placeholder="Enter page text">${pageData.text || ''}</textarea>
+        </div>
+    `;
+}
+
+// Load pages for selected book
+async function loadPages() {
+    if (!selectedBookId) return;
+    
+    const pagesRef = ref(database, `books/${selectedBookId}/pages`);
+    const snapshot = await get(pagesRef);
+    currentPages = snapshot.val() || {};
+    renderPages();
+}
+
+// Render all pages
+function renderPages() {
+    pagesContainer.innerHTML = '';
+    Object.entries(currentPages)
+        .sort(([a], [b]) => parseInt(a) - parseInt(b))
+        .forEach(([pageNumber, pageData]) => {
+            pagesContainer.innerHTML += createPageHTML(parseInt(pageNumber), pageData);
+        });
+    
+    // Update add page button state
+    addPageBtn.disabled = Object.keys(currentPages).length >= 10;
+    
+    // Add event listeners to new elements
+    attachPageEventListeners();
+}
+
+// Add a new page
+async function addPage() {
+    if (Object.keys(currentPages).length >= 10) return;
+    
+    const newPageNumber = Object.keys(currentPages).length + 1;
+    const pageData = {
+        text: '',
+        order: newPageNumber,
+        createdAt: new Date().toISOString()
+    };
+    
+    currentPages[newPageNumber] = pageData;
+    await update(ref(database), {
+        [`books/${selectedBookId}/pages/${newPageNumber}`]: pageData
+    });
+    
+    renderPages();
+}
+
+// Move page up or down
+async function movePage(pageNumber, direction) {
+    const targetNumber = direction === 'up' ? pageNumber - 1 : pageNumber + 1;
+    if (targetNumber < 1 || targetNumber > Object.keys(currentPages).length) return;
+    
+    // Swap pages
+    const tempPage = currentPages[pageNumber];
+    currentPages[pageNumber] = currentPages[targetNumber];
+    currentPages[targetNumber] = tempPage;
+    
+    // Update database
+    await update(ref(database), {
+        [`books/${selectedBookId}/pages/${pageNumber}`]: currentPages[pageNumber],
+        [`books/${selectedBookId}/pages/${targetNumber}`]: currentPages[targetNumber]
+    });
+    
+    renderPages();
+}
+
+// Delete page
+async function deletePage(pageNumber) {
+    if (!confirm(`Delete page ${pageNumber}?`)) return;
+    
+    // Delete from storage if assets exist
+    const page = currentPages[pageNumber];
+    if (page.iconUrl) await deleteObject(storageRef(storage, page.iconUrl));
+    if (page.sceneUrl) await deleteObject(storageRef(storage, page.sceneUrl));
+    if (page.audioUrl) await deleteObject(storageRef(storage, page.audioUrl));
+    
+    // Remove from database
+    delete currentPages[pageNumber];
+    await remove(ref(database, `books/${selectedBookId}/pages/${pageNumber}`));
+    
+    // Reorder remaining pages
+    const updates = {};
+    Object.entries(currentPages)
+        .sort(([a], [b]) => parseInt(a) - parseInt(b))
+        .forEach(([oldNumber, pageData], index) => {
+            const newNumber = index + 1;
+            if (oldNumber !== newNumber.toString()) {
+                updates[`books/${selectedBookId}/pages/${newNumber}`] = pageData;
+                delete currentPages[oldNumber];
+                currentPages[newNumber] = pageData;
+            }
+        });
+    
+    if (Object.keys(updates).length) {
+        await update(ref(database), updates);
+    }
+    
+    renderPages();
+}
+
+// Handle asset upload
+async function handleAssetUpload(file, pageNumber, assetType) {
+    if (!file || !selectedBookId) return;
+    
+    try {
+        showSaveIndicator(`Uploading ${assetType}...`);
+        const extension = assetType === 'audio' ? 'mp3' : 'jpg';
+        const path = `books/${selectedBookId}/pages/${pageNumber}/${assetType}.${extension}`;
+        const url = await uploadFile(file, path);
+        
+        currentPages[pageNumber] = {
+            ...currentPages[pageNumber],
+            [`${assetType}Url`]: url
+        };
+        
+        await update(ref(database), {
+            [`books/${selectedBookId}/pages/${pageNumber}/${assetType}Url`]: url
+        });
+        
+        renderPages();
+        showSaveIndicator(`${assetType} uploaded!`);
+    } catch (error) {
+        console.error(`Error uploading ${assetType}:`, error);
+        showSaveIndicator(`Error uploading ${assetType}`);
+    }
+}
+
+// Handle page text update
+async function updatePageText(pageNumber, text) {
+    if (!selectedBookId) return;
+    
+    currentPages[pageNumber] = {
+        ...currentPages[pageNumber],
+        text
+    };
+    
+    await update(ref(database), {
+        [`books/${selectedBookId}/pages/${pageNumber}/text`]: text
+    });
+}
+
+// Attach event listeners to page elements
+function attachPageEventListeners() {
+    // Move page up/down
+    document.querySelectorAll('.move-up, .move-down').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const pageCard = e.target.closest('.page-card');
+            const pageNumber = parseInt(pageCard.dataset.page);
+            movePage(pageNumber, e.target.classList.contains('move-up') ? 'up' : 'down');
+        });
+    });
+    
+    // Delete page
+    document.querySelectorAll('.delete-page').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const pageCard = e.target.closest('.page-card');
+            const pageNumber = parseInt(pageCard.dataset.page);
+            deletePage(pageNumber);
+        });
+    });
+    
+    // Asset uploads
+    document.querySelectorAll('.asset-upload').forEach(uploadZone => {
+        uploadZone.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = uploadZone.dataset.type === 'audio' ? 'audio/*' : 'image/*';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const pageCard = uploadZone.closest('.page-card');
+                    const pageNumber = parseInt(pageCard.dataset.page);
+                    handleAssetUpload(file, pageNumber, uploadZone.dataset.type);
+                }
+            };
+            
+            input.click();
+        });
+        
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#1a73e8';
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.style.borderColor = '#ddd';
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#ddd';
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const pageCard = uploadZone.closest('.page-card');
