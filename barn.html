@@ -57,6 +57,9 @@
         }
 
         .page-text {
+            width: 90%; /* Makes the text box wider, using percentage of parent */
+            max-width: 800px; /* Prevents it from getting too wide on large screens */
+            white-space: nowrap; /* Prevents text from wrapping */
             position: absolute;
             bottom: 20%; 
             left: 50%;
