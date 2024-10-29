@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Books</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #1a73e8;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 300px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-info {
+            padding: 20px;
+        }
+
+        .book-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        /* No books state */
+        .no-books {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        /* iPad optimizations */
+        @media (hover: none) {
+            .book-card {
+                transform: none !important;
+            }
+            
+            .book-card:active {
+                opacity: 0.8;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .book-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Interactive Books</h1>
+    </div>
+
+    <div id="loading" class="loading">
+        Loading books...
+    </div>
+
+    <div id="books-container" class="book-grid" style="display: none;">
+        <!-- Books will be dynamically added here -->
+    </div>
+
+    <div id="no-books" class="no-books" style="display: none;">
+        No published books available.
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <script type="module">
+        import { firebaseConfig } from './firebase-config.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // DOM Elements
+        const loadingElement = document.getElementById('loading');
+        const booksContainer = document.getElementById('books-container');
+        const noBooksElement = document.getElementById('no-books');
+
+        // Create book card element
+        function createBookCard(book, bookId) {
+            const bookCard = document.createElement('div');
+            bookCard.className = 'book-card';
+            bookCard.innerHTML = `
+                <div class="book-cover">
+                    ${book.coverUrl ? 
+                        `<img src="${book.coverUrl}" alt="${book.title}">` : 
+                        `<div class="no-cover">${book.title}</div>`}
+                </div>
+                <div class="book-info">
+                    <div class="book-title">${book.title}</div>
+                </div>
+            `;
+            
+            // Add click handler to open the book
+            bookCard.addEventListener('click', () => {
+                window.location.href = `./${book.title.toLowerCase().replace(/\s+/g, '')}.html`;
+            });
+            
+            return bookCard;
+        }
+
+        // Load and display books
+        function loadBooks() {
+            const booksRef = ref(database, 'books');
+            onValue(booksRef, (snapshot) => {
+                const books = snapshot.val();
+                loadingElement.style.display = 'none';
+                
+                if (!books) {
+                    noBooksElement.style.display = 'block';
+                    return;
+                }
+
+                const publishedBooks = Object.entries(books)
+                    .filter(([_, book]) => book.status === 'published')
+                    .map(([id, book]) => ({ id, ...book }));
+
+                if (publishedBooks.length === 0) {
+                    noBooksElement.style.display = 'block';
+                    return;
+                }
+
+                booksContainer.style.display = 'grid';
+                booksContainer.innerHTML = '';
+                publishedBooks.forEach(book => {
+                    booksContainer.appendChild(createBookCard(book, book.id));
+                });
+            });
+        }
+
+        // Initialize the app
+        loadBooks();
+    </script>
+</body>
+</html>
