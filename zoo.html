@@ -56,7 +56,11 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
+       
         .page-text {
+            width: 90%; /* Makes the text box wider, using percentage of parent */
+            max-width: 800px; /* Prevents it from getting too wide on large screens */
+            white-space: nowrap; /* Prevents text from wrapping */
             position: absolute;
             bottom: 20%; 
             left: 50%;
@@ -78,7 +82,6 @@
             animation: float 2s ease-in-out infinite;
             z-index: 10;
         }
-
         .interaction-prompt {
             position: fixed;
             top: 50%;
