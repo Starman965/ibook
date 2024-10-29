@@ -13,18 +13,18 @@
 
         body {
             background-color: #73c2fb;
-            font-family: Arial, sans-serif;
-            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
         }
 
         #navbar {
-            width: 100%;
-            padding: 20px;
-            display: flex;
-            justify-content: flex-start;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 3;
         }
 
         .library-btn {
@@ -41,40 +41,34 @@
             background-color: #1557b0;
         }
 
-        #content {
-            width: 100%;
-            max-width: 800px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
         .scene {
-            width: 100%;
-            height: 400px;
-            background-size: contain;
-            background-repeat: no-repeat;
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
             background-position: center;
-            margin: 20px 0;
-            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .icon-container {
-            width: 100%;
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px;
+            z-index: 2;
         }
 
         .icon {
             width: 80px;
             height: 80px;
             cursor: pointer;
+            transition: transform 0.2s;
             border-radius: 10px;
-            transition: transform 0.3s ease;
-            object-fit: contain;
-            background-color: white;
         }
 
         .icon:hover {
@@ -87,49 +81,44 @@
         }
 
         #text-content {
-            font-size: 24px;
-            margin: 20px;
-            padding: 20px;
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
             background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            min-height: 100px;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 24px;
+            text-align: center;
+            z-index: 2;
+            min-width: 300px;
+            max-width: 80%;
         }
 
         #audio-player {
-            margin: 20px 0;
-            width: 80%;
-            max-width: 500px;
+            display: none;
         }
 
         .loading {
-            padding: 20px;
-            text-align: center;
-            font-size: 1.2em;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: white;
+            font-size: 24px;
+            z-index: 4;
         }
 
         .error {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
             padding: 20px;
-            text-align: center;
+            border-radius: 10px;
             color: red;
-            background: white;
-            border-radius: 5px;
-            margin: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .scene {
-                height: 300px;
-            }
-
-            #text-content {
-                font-size: 20px;
-            }
-
-            .icon {
-                width: 60px;
-                height: 60px;
-            }
+            z-index: 4;
         }
     </style>
 </head>
@@ -145,7 +134,7 @@
         <div class="scene" id="scene"></div>
         <div class="icon-container" id="icon-container"></div>
         <div id="text-content"></div>
-        <audio id="audio-player" controls>
+        <audio id="audio-player">
             Your browser does not support the audio element.
         </audio>
     </div>
@@ -172,7 +161,6 @@
         // State management
         let currentBook = null;
         let currentPage = 1;
-        let orderedPages = [];
 
         // Get book ID from URL
         function getBookId() {
@@ -206,11 +194,6 @@
                 currentBook = book;
                 document.title = book.title;
 
-                // Create ordered pages array
-                orderedPages = Object.entries(book.pages || {})
-                    .sort(([a], [b]) => parseInt(a) - parseInt(b))
-                    .map(([_, page]) => page);
-
                 // Hide loading and show content
                 loadingElement.style.display = 'none';
                 contentElement.style.display = 'block';
@@ -241,9 +224,7 @@
             // Update audio
             if (page.audioUrl) {
                 audioPlayer.src = page.audioUrl;
-                audioPlayer.load();
-            } else {
-                audioPlayer.src = '';
+                audioPlayer.play().catch(error => console.log('Audio autoplay prevented'));
             }
 
             // Update icons
