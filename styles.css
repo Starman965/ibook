@@ -1,0 +1,107 @@
+/* General Layout */
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+}
+
+/* Navigation Bar */
+#navbar {
+    background-color: #1d4ed8;
+    color: white;
+    padding: 1rem;
+}
+
+#navbar a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Loading and Error States */
+.loading, .error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* Main Content Container */
+#content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    cursor: pointer;
+    position: relative;
+    max-width: 100vw;
+    overflow: hidden;
+}
+
+/* Scene Container */
+.scene {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.scene img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon Container */
+.icon-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.icon-container img {
+    max-width: 150px;
+    height: auto;
+}
+
+/* Text Content */
+#text-content {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 1.5rem;
+    color: #333;
+    padding: 1rem;
+    max-width: 800px;
+}
+
+/* Audio Controls */
+audio {
+    margin-top: 1rem;
+    width: 300px;
+    cursor: default;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .icon-container img {
+        max-width: 100px;
+    }
+
+    #text-content {
+        font-size: 1.2rem;
+    }
+
+    audio {
+        width: 100%;
+        max-width: 300px;
+    }
+}
