@@ -1,25 +1,72 @@
-/* Main Content Container */
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+}
+
+/* Navbar styles */
+#navbar {
+    background-color: #1d4ed8;
+    padding: 1rem;
+    z-index: 10;
+}
+
+.library-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+}
+
+/* Loading and error states */
+.loading, .error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* Main content container */
 #content {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 1rem;
-    cursor: pointer;
     position: relative;
+    width: 100%;
     max-width: 100vw;
     overflow: hidden;
+    background-color: white;
 }
 
-/* Scene Container */
+/* Scene styles */
 .scene {
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
     text-align: center;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .scene img {
@@ -27,27 +74,33 @@
     height: auto;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    pointer-events: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
-/* Icon Container */
+/* Icon container styles */
 .icon-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 2;
+    z-index: 3;
     cursor: pointer;
-    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .icon-container img {
     max-width: 150px;
     height: auto;
-    pointer-events: auto;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
-/* Text Content */
+/* Text content styles */
 #text-content {
     margin-top: 1rem;
     text-align: center;
@@ -56,14 +109,76 @@
     padding: 1rem;
     max-width: 800px;
     cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Audio Controls */
+/* Audio player styles */
 audio {
     margin-top: 1rem;
     width: 300px;
-    cursor: default;
-    position: relative;
-    z-index: 3;
-    pointer-events: auto;
+    max-width: 100%;
+    z-index: 4;
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: #f0f2f5;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-mute-button {
+    cursor: pointer;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    #content {
+        padding: 0.5rem;
+    }
+    
+    .icon-container img {
+        max-width: 100px;
+    }
+
+    #text-content {
+        font-size: 1.2rem;
+        padding: 0.5rem;
+    }
+
+    audio {
+        width: 90%;
+        margin: 1rem auto;
+    }
+}
+
+/* Touch device optimization */
+@media (hover: none) {
+    body {
+        overscroll-behavior: none;
+    }
+
+    #content {
+        touch-action: none;
+    }
+
+    .scene, .icon-container, #text-content {
+        touch-action: none;
+    }
+}
+
+/* Prevent text selection on double tap */
+.scene, .icon-container, #text-content {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Add active state for touch feedback */
+.scene:active img,
+.icon-container:active img {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
 }
