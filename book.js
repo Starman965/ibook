@@ -12,6 +12,7 @@ let totalPages = 0;
 let currentAudio = null;
 let isTransitioning = false;
 let autoplayEnabled = false;
+let bookData = null;
 
 // Get book ID from URL parameters
 function getBookId() {
@@ -23,7 +24,7 @@ function getBookId() {
 async function initializeBook() {
     try {
         const bookId = getBookId();
-        console.log('Loading book:', bookId); // Debug log
+        console.log('Loading book:', bookId);
         
         if (!bookId) {
             document.getElementById('root').innerHTML = '<div class="error">No book specified</div>';
@@ -32,9 +33,9 @@ async function initializeBook() {
 
         const bookRef = ref(database, `books/${bookId}`);
         const snapshot = await get(bookRef);
-        const bookData = snapshot.val();
+        bookData = snapshot.val();
         
-        console.log('Book data:', bookData); // Debug log
+        console.log('Book data:', bookData);
         
         if (!bookData || bookData.status !== 'published') {
             document.getElementById('root').innerHTML = '<div class="error">Book not found or not published</div>';
@@ -44,6 +45,7 @@ async function initializeBook() {
         totalPages = Object.keys(bookData.pages).length;
         renderBook(bookData);
         setupEventListeners();
+        createPageNavigation(bookData);
         checkAutoplaySupport();
     } catch (error) {
         console.error('Error loading book:', error);
@@ -51,15 +53,42 @@ async function initializeBook() {
     }
 }
 
+// Create page navigation
+function createPageNavigation(bookData) {
+    const navigation = document.createElement('div');
+    navigation.className = 'page-navigation';
+    
+    const sortedPages = Object.entries(bookData.pages)
+        .sort(([a], [b]) => parseInt(a) - parseInt(b));
+
+    sortedPages.forEach(([pageNum, page]) => {
+        const button = document.createElement('button');
+        button.className = `page-nav-button ${pageNum === '1' ? 'active' : ''}`;
+        button.setAttribute('data-page', pageNum);
+        
+        // Create image container
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'nav-image-container';
+        
+        // Add icon image
+        if (page.iconUrl) {
+            const img = document.createElement('img');
+            img.src = page.iconUrl;
+            img.alt = `Page ${pageNum}`;
+            img.className = 'nav-icon';
+            imgContainer.appendChild(img);
+        }
+        
+        button.appendChild(imgContainer);
+        button.addEventListener('click', () => navigateToPage(parseInt(pageNum)));
+        navigation.appendChild(button);
+    });
+
+    document.body.appendChild(navigation);
+}
+
 // Render book structure
 function renderBook(bookData) {
-    const navigation = document.createElement('div');
-    navigation.className = 'navigation';
-    navigation.innerHTML = `
-        <button class="nav-button prev-page" aria-label="Previous page">←</button>
-        <button class="nav-button next-page" aria-label="Next page">→</button>
-    `;
-
     // Add autoplay message element
     const autoplayMessage = document.createElement('div');
     autoplayMessage.className = 'audio-autoplay-message';
@@ -70,7 +99,6 @@ function renderBook(bookData) {
         .map(([pageNum, page]) => `
             <div class="page ${pageNum === '1' ? 'active' : ''}" data-page="${pageNum}">
                 <div class="page-content">
-                    ${page.iconUrl ? `<img src="${page.iconUrl}" alt="Icon" class="page-icon">` : ''}
                     ${page.sceneUrl ? `<img src="${page.sceneUrl}" alt="Scene" class="page-image">` : ''}
                     <div class="page-text">${page.text || ''}</div>
                     ${page.audioUrl ? `
@@ -79,39 +107,65 @@ function renderBook(bookData) {
                         </div>
                     ` : ''}
                 </div>
-                <div class="page-number">Page ${pageNum} of ${totalPages}</div>
             </div>
         `).join('');
 
     const root = document.getElementById('root');
     root.innerHTML = pages;
-    root.appendChild(navigation);
     document.body.appendChild(autoplayMessage);
+}
+
+// Navigate to specific page
+function navigateToPage(targetPage) {
+    if (isTransitioning || targetPage === currentPage) return;
+    isTransitioning = true;
+
+    // Update navigation buttons
+    document.querySelectorAll('.page-nav-button').forEach(button => {
+        button.classList.toggle('active', parseInt(button.dataset.page) === targetPage);
+    });
+
+    // Handle page transition
+    const currentPageElement = document.querySelector(`.page[data-page="${currentPage}"]`);
+    const nextPageElement = document.querySelector(`.page[data-page="${targetPage}"]`);
+
+    // Handle audio
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+
+    // Update page visibility
+    currentPageElement.classList.remove('active');
+    nextPageElement.classList.add('active');
+
+    // Play audio of new page if available and autoplay is enabled
+    const nextAudioElement = nextPageElement.querySelector('audio');
+    if (nextAudioElement && autoplayEnabled) {
+        setTimeout(() => {
+            nextAudioElement.play().catch(console.log);
+        }, 100);
+    }
+
+    currentPage = targetPage;
+    
+    setTimeout(() => {
+        isTransitioning = false;
+    }, 300);
 }
 
 // Setup event listeners
 function setupEventListeners() {
     const root = document.getElementById('root');
-    
-    // Navigation buttons
-    document.querySelector('.prev-page').addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigatePage('prev');
-    });
-    
-    document.querySelector('.next-page').addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigatePage('next');
-    });
 
     // Click/tap navigation
     root.addEventListener('click', (e) => {
-        // Don't navigate if clicking on audio controls or navigation buttons
-        if (!e.target.closest('.audio-control') && !e.target.closest('.navigation')) {
+        if (!e.target.closest('.audio-control') && !e.target.closest('.page-navigation')) {
             if (!autoplayEnabled) {
                 enableAutoplay();
             }
-            navigatePage('next');
+            const nextPage = currentPage >= totalPages ? 1 : currentPage + 1;
+            navigateToPage(nextPage);
         }
     });
 
@@ -125,7 +179,6 @@ function setupEventListeners() {
             currentAudio = audio;
         });
 
-        // Handle audio end
         audio.addEventListener('ended', () => {
             currentAudio = null;
         });
@@ -134,9 +187,11 @@ function setupEventListeners() {
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') {
-            navigatePage('prev');
+            const prevPage = currentPage <= 1 ? totalPages : currentPage - 1;
+            navigateToPage(prevPage);
         } else if (e.key === 'ArrowRight' || e.key === ' ') {
-            navigatePage('next');
+            const nextPage = currentPage >= totalPages ? 1 : currentPage + 1;
+            navigateToPage(nextPage);
         }
     });
 }
@@ -151,6 +206,7 @@ async function checkAutoplaySupport() {
         audio.pause();
         audio.currentTime = 0;
         autoplayEnabled = true;
+        document.querySelector('.audio-autoplay-message').classList.remove('show');
     } catch (error) {
         console.log('Autoplay not allowed initially');
         document.querySelector('.audio-autoplay-message').classList.add('show');
@@ -164,49 +220,6 @@ function enableAutoplay() {
     if (message) {
         message.classList.remove('show');
     }
-}
-
-// Navigate between pages
-function navigatePage(direction) {
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    const currentPageElement = document.querySelector(`.page[data-page="${currentPage}"]`);
-    let nextPage;
-
-    if (direction === 'next') {
-        nextPage = currentPage >= totalPages ? 1 : currentPage + 1;
-    } else {
-        nextPage = currentPage <= 1 ? totalPages : currentPage - 1;
-    }
-
-    // Handle audio
-    const currentAudioElement = currentPageElement.querySelector('audio');
-    if (currentAudioElement) {
-        currentAudioElement.pause();
-        currentAudioElement.currentTime = 0;
-    }
-
-    // Update page visibility
-    currentPageElement.classList.remove('active');
-    const nextPageElement = document.querySelector(`.page[data-page="${nextPage}"]`);
-    nextPageElement.classList.add('active');
-
-    // Play audio of new page if available and autoplay is enabled
-    const nextAudioElement = nextPageElement.querySelector('audio');
-    if (nextAudioElement && autoplayEnabled) {
-        setTimeout(() => {
-            nextAudioElement.play().catch(() => {
-                console.log('Audio autoplay failed');
-            });
-        }, 100);
-    }
-
-    currentPage = nextPage;
-    
-    setTimeout(() => {
-        isTransitioning = false;
-    }, 300);
 }
 
 // Initialize the book when the page loads
