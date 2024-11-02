@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Interactive Book</title>
-   <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-     <div id="navbar">
-        <button class="library-btn" onclick="window.location.href='index2.html'">Library</button>
+    <div id="navbar">
+        <a href="index2.html" class="library-btn">Library</a>
     </div>
 
     <div id="loading" class="loading">Loading book content...</div>
@@ -18,10 +19,8 @@
         <div class="scene" id="scene"></div>
         <div class="icon-container" id="icon-container"></div>
         <div id="text-content"></div>
-        <audio id="audio-player">
-            Your browser does not support the audio element.
-        </audio>
     </div>
+    
     <script type="module" src="book.js"></script>
 </body>
 </html>
