@@ -92,7 +92,7 @@ function renderBook(bookData) {
     // Add autoplay message element
     const autoplayMessage = document.createElement('div');
     autoplayMessage.className = 'audio-autoplay-message';
-    autoplayMessage.textContent = 'Tap anywhere to enable audio autoplay';
+    autoplayMessage.textContent = 'Tap anywhere to enable audio';
 
     const pages = Object.entries(bookData.pages)
         .sort(([a], [b]) => parseInt(a) - parseInt(b))
