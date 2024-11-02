@@ -5,20 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Book</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div id="loading" class="loading">
-        Loading book...
-    </div>
-    
-    <div id="root" style="display: none;">
-        <!-- Book content will be dynamically inserted here -->
-    </div>
-    
-    <div id="error" class="error" style="display: none;">
-        Book not found or not published.
-    </div>
-
+    <div id="root"></div>
+    <a href="index2.html" class="library-button" aria-label="Return to Library">
+        <i class="fas fa-book-open"></i>
+    </a>
     <script type="module" src="book.js"></script>
 </body>
 </html>
