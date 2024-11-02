@@ -9,14 +9,9 @@ const database = getDatabase(app);
 // State management
 let currentPage = 1;
 let totalPages = 0;
-let bookData = null;
 let currentAudio = null;
 let isTransitioning = false;
-
-// DOM Elements
-const rootElement = document.getElementById('root');
-const loadingElement = document.getElementById('loading');
-const errorElement = document.getElementById('error');
+let autoplayEnabled = false;
 
 // Get book ID from URL
 const bookId = window.location.pathname.split('/').pop().replace('.html', '');
@@ -26,42 +21,36 @@ async function initializeBook() {
     try {
         const bookRef = ref(database, `books/${bookId}`);
         const snapshot = await get(bookRef);
-        bookData = snapshot.val();
+        const bookData = snapshot.val();
         
         if (!bookData || bookData.status !== 'published') {
-            showError();
+            document.getElementById('root').innerHTML = '<div class="error">Book not found or not published</div>';
             return;
         }
 
         totalPages = Object.keys(bookData.pages).length;
-        renderBook();
+        renderBook(bookData);
         setupEventListeners();
-        hideLoading();
+        checkAutoplaySupport();
     } catch (error) {
         console.error('Error loading book:', error);
-        showError();
+        document.getElementById('root').innerHTML = '<div class="error">Error loading book</div>';
     }
 }
 
-// Show/hide loading and error states
-function showError() {
-    loadingElement.style.display = 'none';
-    errorElement.style.display = 'block';
-}
-
-function hideLoading() {
-    loadingElement.style.display = 'none';
-    rootElement.style.display = 'block';
-}
-
 // Render book structure
-function renderBook() {
+function renderBook(bookData) {
     const navigation = document.createElement('div');
     navigation.className = 'navigation';
     navigation.innerHTML = `
         <button class="nav-button prev-page" aria-label="Previous page">←</button>
         <button class="nav-button next-page" aria-label="Next page">→</button>
     `;
+
+    // Add autoplay message element
+    const autoplayMessage = document.createElement('div');
+    autoplayMessage.className = 'audio-autoplay-message';
+    autoplayMessage.textContent = 'Tap anywhere to enable audio autoplay';
 
     const pages = Object.entries(bookData.pages)
         .sort(([a], [b]) => parseInt(a) - parseInt(b))
@@ -81,55 +70,34 @@ function renderBook() {
             </div>
         `).join('');
 
-    rootElement.innerHTML = pages;
-    rootElement.appendChild(navigation);
+    const root = document.getElementById('root');
+    root.innerHTML = pages;
+    root.appendChild(navigation);
+    document.body.appendChild(autoplayMessage);
 }
 
 // Setup event listeners
 function setupEventListeners() {
+    const root = document.getElementById('root');
+    
     // Navigation buttons
     document.querySelector('.prev-page').addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent triggering the root click
+        e.stopPropagation();
         navigatePage('prev');
     });
     
     document.querySelector('.next-page').addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent triggering the root click
+        e.stopPropagation();
         navigatePage('next');
     });
 
     // Click/tap navigation
-    rootElement.addEventListener('click', (e) => {
+    root.addEventListener('click', (e) => {
         // Don't navigate if clicking on audio controls or navigation buttons
         if (!e.target.closest('.audio-control') && !e.target.closest('.navigation')) {
-            navigatePage('next');
-        }
-    });
-
-    // Touch events for mobile
-    let touchStartX = 0;
-    rootElement.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-    });
-
-    rootElement.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diff = touchStartX - touchEndX;
-
-        // If it's a small movement (tap) rather than a swipe
-        if (Math.abs(diff) < 50) {
-            // Don't navigate if tapping on audio controls or navigation buttons
-            if (!e.target.closest('.audio-control') && !e.target.closest('.navigation')) {
-                navigatePage('next');
+            if (!autoplayEnabled) {
+                enableAutoplay();
             }
-        }
-    });
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-            navigatePage('prev');
-        } else if (e.key === 'ArrowRight' || e.key === ' ') {
             navigatePage('next');
         }
     });
@@ -143,7 +111,46 @@ function setupEventListeners() {
             }
             currentAudio = audio;
         });
+
+        // Handle audio end
+        audio.addEventListener('ended', () => {
+            currentAudio = null;
+        });
     });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            navigatePage('prev');
+        } else if (e.key === 'ArrowRight' || e.key === ' ') {
+            navigatePage('next');
+        }
+    });
+}
+
+// Check autoplay support
+async function checkAutoplaySupport() {
+    const audio = document.querySelector('audio');
+    if (!audio) return;
+
+    try {
+        await audio.play();
+        audio.pause();
+        audio.currentTime = 0;
+        autoplayEnabled = true;
+    } catch (error) {
+        console.log('Autoplay not allowed initially');
+        document.querySelector('.audio-autoplay-message').classList.add('show');
+    }
+}
+
+// Enable autoplay
+function enableAutoplay() {
+    autoplayEnabled = true;
+    const message = document.querySelector('.audio-autoplay-message');
+    if (message) {
+        message.classList.remove('show');
+    }
 }
 
 // Navigate between pages
@@ -172,18 +179,18 @@ function navigatePage(direction) {
     const nextPageElement = document.querySelector(`.page[data-page="${nextPage}"]`);
     nextPageElement.classList.add('active');
 
-    // Play audio of new page if available
+    // Play audio of new page if available and autoplay is enabled
     const nextAudioElement = nextPageElement.querySelector('audio');
-    if (nextAudioElement) {
-        // Small delay to let the transition complete
+    if (nextAudioElement && autoplayEnabled) {
         setTimeout(() => {
-            nextAudioElement.play();
+            nextAudioElement.play().catch(() => {
+                console.log('Audio autoplay failed');
+            });
         }, 100);
     }
 
     currentPage = nextPage;
     
-    // Reset transition lock after animation completes
     setTimeout(() => {
         isTransitioning = false;
     }, 300);
