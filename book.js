@@ -37,121 +37,114 @@ function showError(message) {
     errorElement.style.display = 'block';
 }
 
-// Handle page navigation
-function handlePageNavigation(e) {
-    // Prevent clicking on audio controls from triggering navigation
+// Handle click/touch navigation
+async function goToNextPage(e) {
+    // Ignore if clicking on audio controls
     if (e.target.tagName === 'AUDIO' || e.target.closest('audio')) {
         return;
     }
-    
-    console.log(`Current page: ${currentPageNumber}, Total pages: ${totalPages}`); // Debug log
-    
-    if (currentPageNumber < totalPages) {
-        currentPageNumber++;
-        loadPage(currentPageNumber);
-    } else {
-        console.log('At last page'); // Debug log
+
+    // Prevent default behavior for touch events
+    if (e.type === 'touchend') {
+        e.preventDefault();
     }
+
+    // Calculate next page
+    currentPageNumber = currentPageNumber >= totalPages ? 1 : currentPageNumber + 1;
+    await loadPage(currentPageNumber);
 }
 
 // Load page content
 async function loadPage(pageNumber) {
-    if (!currentBook || !currentBook.pages || !currentBook.pages[pageNumber]) {
-        showError('Page not found');
-        return;
-    }
-
     const page = currentBook.pages[pageNumber];
-    
-    // Clear any existing audio element
+    if (!page) return;
+
+    // Handle existing audio
     const existingAudio = contentElement.querySelector('audio');
     if (existingAudio) {
+        existingAudio.pause();
         existingAudio.remove();
     }
-    
+
     // Update scene image
-    if (page.sceneUrl) {
-        sceneElement.innerHTML = `<img src="${page.sceneUrl}" alt="Scene ${pageNumber}">`;
-    } else {
-        sceneElement.innerHTML = '';
-    }
-    
+    sceneElement.innerHTML = page.sceneUrl ? 
+        `<img src="${page.sceneUrl}" alt="Scene ${pageNumber}">` : '';
+
     // Update icon
-    if (page.iconUrl) {
-        iconContainer.innerHTML = `<img src="${page.iconUrl}" alt="Icon ${pageNumber}">`;
-    } else {
-        iconContainer.innerHTML = '';
-    }
-    
+    iconContainer.innerHTML = page.iconUrl ? 
+        `<img src="${page.iconUrl}" alt="Icon ${pageNumber}">` : '';
+
     // Update text
-    if (page.text) {
-        textContent.textContent = page.text;
-    } else {
-        textContent.textContent = '';
-    }
-    
-    // Update audio
+    textContent.textContent = page.text || '';
+
+    // Add new audio if exists
     if (page.audioUrl) {
-        const audioElement = document.createElement('audio');
-        audioElement.src = page.audioUrl;
-        audioElement.controls = true;
-        contentElement.appendChild(audioElement);
+        const audio = document.createElement('audio');
+        audio.src = page.audioUrl;
+        audio.controls = true;
         
-        // Auto-play audio when page loads
-        try {
-            await audioElement.play();
-        } catch (error) {
-            console.log('Auto-play prevented by browser');
-        }
+        // Wait for audio to be ready before appending and playing
+        await new Promise((resolve) => {
+            audio.addEventListener('loadeddata', () => {
+                contentElement.appendChild(audio);
+                audio.play().catch(err => console.log('Autoplay prevented:', err));
+                resolve();
+            });
+            
+            // Add error handling
+            audio.addEventListener('error', () => {
+                console.error('Error loading audio');
+                resolve();
+            });
+        });
     }
-    
-    console.log(`Loaded page ${pageNumber} of ${totalPages}`); // Debug log
 }
 
-// Load book data
+// Initialize book data
 async function loadBookData() {
     try {
         const bookId = getBookId();
         if (!bookId) {
-            throw new Error("No book ID provided");
+            throw new Error('No book ID provided');
         }
 
         const bookRef = ref(database, `books/${bookId}`);
         const snapshot = await get(bookRef);
         const book = snapshot.val();
 
-        if (!book || book.status !== "published") {
-            throw new Error("Book not found or not published");
+        if (!book || book.status !== 'published') {
+            throw new Error('Book not found or not published');
         }
 
         currentBook = book;
-        document.title = book.title;
-
-        // Set total pages
         totalPages = Object.keys(book.pages || {}).length;
-        currentPageNumber = 1;
         
-        console.log(`Book loaded with ${totalPages} pages`); // Debug log
+        // Update page title
+        document.title = book.title || 'Interactive Book';
 
-        // Hide loading and show content
+        // Hide loading, show content
         loadingElement.style.display = 'none';
         contentElement.style.display = 'block';
 
         // Load first page
-        loadPage(currentPageNumber);
-        
-        // Add click handlers after content is loaded
-        sceneElement.addEventListener('click', handlePageNavigation);
-        iconContainer.addEventListener('click', handlePageNavigation);
-        textContent.addEventListener('click', handlePageNavigation);
-        contentElement.addEventListener('click', handlePageNavigation);
+        await loadPage(1);
+
+        // Add event listeners for navigation
+        const elements = [sceneElement, iconContainer, textContent];
+        elements.forEach(element => {
+            element.addEventListener('click', goToNextPage);
+            element.addEventListener('touchend', goToNextPage, { passive: false });
+        });
+
     } catch (error) {
         console.error('Error loading book:', error);
-        showError('Error loading book content. Please try again later.');
+        showError('Unable to load book. Please try again later.');
     }
 }
 
-// Initialize the book
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadBookData);
+} else {
     loadBookData();
-});
+}
