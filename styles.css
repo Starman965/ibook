@@ -1,3 +1,4 @@
+/* Base styles */
 body {
     margin: 0;
     padding: 0;
@@ -13,11 +14,12 @@ body {
     overflow: hidden;
 }
 
+/* Page structure */
 .page {
     position: absolute;
     top: 0;
     left: 0;
-    width: calc(100% - 100px); /* Adjust width to accommodate navigation */
+    width: calc(100% - 100px);
     height: 100%;
     display: none;
     background: #000;
@@ -60,8 +62,8 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Navigation styles */
-.side-navigation {
+/* Side Navigation */
+.page-navigation {
     position: fixed;
     right: 20px;
     top: 50%;
@@ -72,33 +74,44 @@ body {
     z-index: 100;
 }
 
-.nav-button {
+.page-nav-button {
     width: 64px;
     height: 64px;
-    border-radius: 8px;
     border: none;
-    background: #fff;
+    border-radius: 12px;
+    padding: 0;
     cursor: pointer;
     overflow: hidden;
+    background: white;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.nav-button:hover {
+.page-nav-button:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.nav-button.active {
+.page-nav-button.active {
     box-shadow: 0 0 0 3px #4299e1;
 }
 
-.nav-button img {
+.nav-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.nav-icon {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* Audio Control */
 .audio-control {
     position: absolute;
     bottom: 20px;
@@ -113,12 +126,7 @@ audio {
     width: 100%;
 }
 
-/* Remove the navigation arrows */
-.navigation {
-    display: none;
-}
-
-/* Style the library button */
+/* Library Button */
 .library-button {
     position: fixed;
     top: 20px;
@@ -141,7 +149,7 @@ audio {
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* Style for autoplay message */
+/* Messages */
 .audio-autoplay-message {
     position: fixed;
     bottom: 20%;
@@ -162,7 +170,6 @@ audio {
     display: block;
 }
 
-/* Style for error message */
 .error {
     position: fixed;
     top: 50%;
