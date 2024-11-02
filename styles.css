@@ -34,7 +34,7 @@ body {
 }
 
 .page-icon {
-    display: none;  /* Hidden as per original design */
+    display: none;
 }
 
 .page-image {
@@ -51,15 +51,17 @@ body {
     bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
+    width: 80%;
+    max-width: 800px;
     text-align: center;
-    color: white;
+    color: #333;
     font-size: 2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    background: rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    border-radius: 15px;
+    line-height: 1.4;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px 30px;
+    border-radius: 25px;
     z-index: 2;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .audio-control {
@@ -70,22 +72,21 @@ body {
     width: 80%;
     max-width: 300px;
     z-index: 3;
+    opacity: 0.8;
 }
 
 audio {
     width: 100%;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.1);
 }
 
 .navigation {
     position: fixed;
-    right: 20px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     z-index: 10;
 }
 
@@ -94,20 +95,18 @@ audio {
     height: 50px;
     border-radius: 50%;
     border: none;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.6);
     color: white;
     font-size: 24px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease;
 }
 
 .nav-button:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .library-button {
@@ -118,46 +117,34 @@ audio {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.6);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
     font-size: 24px;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease;
 }
 
 .library-button:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: scale(1.1);
-}
-
-.page-number {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    color: white;
-    font-size: 1.2em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-    z-index: 2;
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .audio-autoplay-message {
     position: fixed;
-    top: 50%;
+    bottom: 20%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px 30px;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 15px 30px;
     border-radius: 25px;
     font-size: 1.2em;
     z-index: 100;
     display: none;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .audio-autoplay-message.show {
@@ -170,19 +157,20 @@ audio {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 1.5em;
-    color: white;
+    color: #333;
     text-align: center;
     padding: 20px;
-    background: rgba(255, 0, 0, 0.8);
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .page-text {
         font-size: 1.5em;
-        bottom: 15%;
+        width: 85%;
+        padding: 12px 24px;
     }
 
     .nav-button {
@@ -201,7 +189,8 @@ audio {
 @media (max-width: 480px) {
     .page-text {
         font-size: 1.2em;
-        bottom: 20%;
+        width: 90%;
+        padding: 10px 20px;
     }
 
     .nav-button {
