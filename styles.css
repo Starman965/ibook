@@ -17,7 +17,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: calc(100% - 100px); /* Adjust width to accommodate navigation */
     height: 100%;
     display: none;
     background: #000;
@@ -58,6 +58,45 @@ body {
     border-radius: 25px;
     z-index: 2;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation styles */
+.side-navigation {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.nav-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    border: none;
+    background: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.active {
+    box-shadow: 0 0 0 3px #4299e1;
+}
+
+.nav-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .audio-control {
