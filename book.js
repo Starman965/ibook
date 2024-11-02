@@ -13,15 +13,28 @@ let currentAudio = null;
 let isTransitioning = false;
 let autoplayEnabled = false;
 
-// Get book ID from URL
-const bookId = window.location.pathname.split('/').pop().replace('.html', '');
+// Get book ID from URL parameters
+function getBookId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
 
 // Initialize book
 async function initializeBook() {
     try {
+        const bookId = getBookId();
+        console.log('Loading book:', bookId); // Debug log
+        
+        if (!bookId) {
+            document.getElementById('root').innerHTML = '<div class="error">No book specified</div>';
+            return;
+        }
+
         const bookRef = ref(database, `books/${bookId}`);
         const snapshot = await get(bookRef);
         const bookData = snapshot.val();
+        
+        console.log('Book data:', bookData); // Debug log
         
         if (!bookData || bookData.status !== 'published') {
             document.getElementById('root').innerHTML = '<div class="error">Book not found or not published</div>';
@@ -34,7 +47,7 @@ async function initializeBook() {
         checkAutoplaySupport();
     } catch (error) {
         console.error('Error loading book:', error);
-        document.getElementById('root').innerHTML = '<div class="error">Error loading book</div>';
+        document.getElementById('root').innerHTML = '<div class="error">Error loading book: ' + error.message + '</div>';
     }
 }
 
