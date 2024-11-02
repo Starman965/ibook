@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Book</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="navbar">
-        <a href="index2.html" class="library-btn">Library</a>
-    </div>
-
-    <div id="loading" class="loading">Loading book content...</div>
-    <div id="error" class="error" style="display: none;"></div>
-
-    <div id="content" style="display: none;">
-        <div class="scene" id="scene"></div>
-        <div class="icon-container" id="icon-container"></div>
-        <div id="text-content"></div>
+    <div id="loading" class="loading">
+        Loading book...
     </div>
     
+    <div id="root" style="display: none;">
+        <!-- Book content will be dynamically inserted here -->
+    </div>
+    
+    <div id="error" class="error" style="display: none;">
+        Book not found or not published.
+    </div>
+
     <script type="module" src="book.js"></script>
 </body>
 </html>
