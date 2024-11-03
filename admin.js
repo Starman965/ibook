@@ -405,8 +405,7 @@ function attachPageEventListeners() {
         uploadZone.addEventListener('click', () => {
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = uploadZone.dataset.type === 'audio' ? 'audio/*' : 'image/*';
-            
+            input.accept = uploadZone.dataset.type === 'audio/mp3' ? 'audio/*' : 'image/*';
             input.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
