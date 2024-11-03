@@ -12,27 +12,32 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
             line-height: 1.6;
-            background-color: #f0f2f5;
+            background: linear-gradient(135deg, #c2e9fb 0%, #a1c4fd 100%);
+            min-height: 100vh;
             padding: 20px;
         }
 
         .header {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             margin-bottom: 40px;
+            background: linear-gradient(to right, #FF9A9E, #FAD0C4);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
-            color: #1a73e8;
-            font-size: 2.5em;
+            color: white;
+            font-size: 3em;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .book-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 30px;
             padding: 20px;
             max-width: 1200px;
@@ -41,40 +46,51 @@
 
         .book-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
             cursor: pointer;
+            border: 3px solid #fff;
         }
 
         .book-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+            border-color: #FFD700;
         }
 
         .book-cover {
             width: 100%;
-            height: 300px;
-            background-color: #e0e0e0;
+            height: 350px;
+            background: linear-gradient(45deg, #FFE5E5, #FFE8CC);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
         }
 
         .book-cover img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .book-card:hover .book-cover img {
+            transform: scale(1.05);
         }
 
         .book-info {
             padding: 20px;
+            background: linear-gradient(to right, #FFE5E5, #FFE8CC);
+            text-align: center;
         }
 
         .book-title {
             font-size: 1.5em;
-            color: #333;
+            color: #444;
             margin-bottom: 10px;
             font-weight: bold;
         }
@@ -82,15 +98,38 @@
         .loading {
             text-align: center;
             padding: 40px;
-            font-size: 1.2em;
-            color: #666;
+            font-size: 1.5em;
+            color: #555;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            max-width: 300px;
+            margin: 100px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .no-books {
             text-align: center;
             padding: 40px;
-            font-size: 1.2em;
+            font-size: 1.5em;
+            color: #555;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            max-width: 400px;
+            margin: 100px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-cover .no-cover {
+            font-size: 1.5em;
             color: #666;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #FFE5E5, #FFE8CC);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @media (hover: none) {
@@ -99,14 +138,47 @@
             }
             
             .book-card:active {
-                opacity: 0.8;
+                opacity: 0.9;
+                border-color: #FFD700;
             }
         }
 
-        @media (min-width: 768px) {
-            .book-grid {
-                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
             }
+
+            .book-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+                padding: 10px;
+            }
+
+            .book-cover {
+                height: 300px;
+            }
+        }
+
+        /* Decorative elements */
+        .header::before,
+        .header::after {
+            content: "📚";
+            font-size: 2em;
+            margin: 0 20px;
+        }
+
+        /* Loading animation */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loading::after {
+            content: "📚";
+            display: block;
+            font-size: 2em;
+            margin-top: 10px;
+            animation: bounce 1s infinite;
         }
     </style>
 </head>
@@ -120,7 +192,6 @@
     </div>
 
     <div id="books-container" class="book-grid" style="display: none;">
-        <!-- Books will be dynamically added here -->
     </div>
 
     <div id="no-books" class="no-books" style="display: none;">
@@ -151,15 +222,14 @@
             bookCard.innerHTML = `
                 <div class="book-cover">
                     ${book.coverUrl ? 
-                        `<img src="${book.coverUrl}" alt="${book.title}">` : 
-                        `<div class="no-cover">${book.title}</div>`}
+                        `<img src="${book.coverUrl}" alt="${book.title}" loading="lazy">` : 
+                        `<div class="no-cover">📖<br>${book.title}</div>`}
                 </div>
                 <div class="book-info">
                     <div class="book-title">${book.title}</div>
                 </div>
             `;
             
-            // Add click handler to open the book with its ID
             bookCard.addEventListener('click', () => {
                 window.location.href = `./book.html?id=${bookId}`;
             });
