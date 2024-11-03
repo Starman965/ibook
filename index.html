@@ -20,20 +20,47 @@
         }
 
         .header {
-            text-align: center;
-            padding: 30px;
-            margin-bottom: 40px;
-            background: linear-gradient(to right, #FF9A9E, #FAD0C4);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+    text-align: center;
+    padding: 30px;
+    margin-bottom: 40px;
+    /* Changed to a more vibrant, playful gradient */
+    background: linear-gradient(to right, #FF512F, #DD2476);
+    /* Or alternatively, this cheerful gradient: */
+    /* background: linear-gradient(to right, #00C9FF, #92FE9D); */
+    /* Or this fun rainbow gradient: */
+    /* background: linear-gradient(to right, #FF6B6B, #FFD93D, #6BCB77, #4D96FF); */
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    animation: headerGlow 3s infinite alternate;
+}
 
-        .header h1 {
-            color: white;
-            font-size: 3em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
+/* Add subtle glow animation */
+@keyframes headerGlow {
+    from {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    to {
+        box-shadow: 0 4px 25px rgba(255, 82, 47, 0.4);
+    }
+}
+
+.header h1 {
+    color: white;
+    font-size: 3em;
+    margin-bottom: 10px;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+    /* Add subtle text animation */
+    animation: textBounce 2s infinite alternate;
+}
+
+@keyframes textBounce {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-5px);
+    }
+}
 
         .book-grid {
             display: grid;
