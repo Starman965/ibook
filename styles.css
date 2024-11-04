@@ -150,38 +150,26 @@ audio {
 }
 
 /* Messages */
-.audio-autoplay-message {
-    position: fixed;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    padding: 15px 30px;
-    border-radius: 25px;
-    font-size: 1.2em;
-    z-index: 100;
-    display: none;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
 
-.audio-autoplay-message.show {
-    display: block;
-}
-
-.error {
+/* Start Button */
+.start-button {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 1.5em;
-    color: #333;
-    text-align: center;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.9);
+    background: #4299e1;
+    color: white;
+    padding: 15px 30px;
+    border: none;
     border-radius: 25px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 100;
+    display: none;
+}
+
+.start-button.show {
+    display: block;
 }
 
 /* Mobile Responsiveness */

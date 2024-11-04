@@ -89,11 +89,6 @@ function createPageNavigation(bookData) {
 
 // Render book structure
 function renderBook(bookData) {
-    // Add autoplay message element
-    const autoplayMessage = document.createElement('div');
-    autoplayMessage.className = 'audio-autoplay-message';
-    autoplayMessage.textContent = 'Tap anywhere to enable audio';
-
     const pages = Object.entries(bookData.pages)
         .sort(([a], [b]) => parseInt(a) - parseInt(b))
         .map(([pageNum, page]) => `
@@ -112,7 +107,6 @@ function renderBook(bookData) {
 
     const root = document.getElementById('root');
     root.innerHTML = pages;
-    document.body.appendChild(autoplayMessage);
 }
 
 // Navigate to specific page
@@ -206,21 +200,48 @@ async function checkAutoplaySupport() {
         audio.pause();
         audio.currentTime = 0;
         autoplayEnabled = true;
-        document.querySelector('.audio-autoplay-message').classList.remove('show');
     } catch (error) {
         console.log('Autoplay not allowed initially');
-        document.querySelector('.audio-autoplay-message').classList.add('show');
+        showStartButton();
     }
+}
+
+// Show start button
+function showStartButton() {
+    console.log('Showing start button');
+    const startButton = document.createElement('button');
+    startButton.className = 'start-button show';
+    startButton.textContent = 'Tap Here to Begin';
+    startButton.addEventListener('click', () => {
+        console.log('Start button clicked');
+        enableAutoplay();
+        startButton.remove();
+    });
+    document.body.appendChild(startButton);
 }
 
 // Enable autoplay
 function enableAutoplay() {
+    console.log('Enabling autoplay');
     autoplayEnabled = true;
-    const message = document.querySelector('.audio-autoplay-message');
-    if (message) {
-        message.classList.remove('show');
+    localStorage.setItem('autoplayEnabled', 'true');
+    // Try to play the audio of the current page
+    const currentPageElement = document.querySelector(`.page[data-page="${currentPage}"]`);
+    const currentAudioElement = currentPageElement.querySelector('audio');
+    if (currentAudioElement) {
+        currentAudioElement.play().catch(error => {
+            console.error('Error playing audio:', error);
+        });
     }
 }
 
+// Clear autoplay flag when the user leaves the page
+window.addEventListener('beforeunload', () => {
+    localStorage.setItem('autoplayEnabled', 'false');
+});
+
 // Initialize the book when the page loads
-document.addEventListener('DOMContentLoaded', initializeBook);
+document.addEventListener('DOMContentLoaded', () => {
+    localStorage.setItem('autoplayEnabled', 'false'); // Reset autoplay flag on page load
+    initializeBook();
+});

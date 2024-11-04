@@ -23,14 +23,11 @@
     text-align: center;
     padding: 30px;
     margin-bottom: 40px;
-    /* Changed to a more vibrant, playful gradient */
-    background: linear-gradient(to right, #FF512F, #DD2476);
-    /* Or alternatively, this cheerful gradient: */
-    /* background: linear-gradient(to right, #00C9FF, #92FE9D); */
-    /* Or this fun rainbow gradient: */
-    /* background: linear-gradient(to right, #FF6B6B, #FFD93D, #6BCB77, #4D96FF); */
+    /* Placeholder for background image */
+    background: url('background.webp') no-repeat center center;
+    background-size: cover;
     border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.781);
     animation: headerGlow 3s infinite alternate;
 }
 
@@ -45,7 +42,7 @@
 }
 
 .header h1 {
-    color: white;
+    color: rgb(117, 19, 27);
     font-size: 3em;
     margin-bottom: 10px;
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
@@ -84,7 +81,7 @@
         .book-card:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
-            border-color: #FFD700;
+            border-color: #ff00b3;
         }
 
         .book-cover {
@@ -186,14 +183,6 @@
             }
         }
 
-        /* Decorative elements */
-        .header::before,
-        .header::after {
-            content: "📚";
-            font-size: 2em;
-            margin: 0 20px;
-        }
-
         /* Loading animation */
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
@@ -211,7 +200,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Interactive Books</h1>
+        <h1>Naomi's Digital Library</h1>
     </div>
 
     <div id="loading" class="loading">
@@ -236,6 +225,9 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+
+        // Clear autoplay flag when the user navigates to the index page
+        localStorage.setItem('autoplayEnabled', 'false');
 
         // DOM Elements
         const loadingElement = document.getElementById('loading');

@@ -157,10 +157,10 @@ async function selectBook(bookId) {
     });
 }
 
-// Update cover preview
+// Adjust cover preview size
 function updateCoverPreview(url) {
     if (url) {
-        coverPreview.innerHTML = `<img src="${url}" alt="Book cover">`;
+        coverPreview.innerHTML = `<img src="${url}" alt="Book cover" style="max-width: 300px;">`;
     } else {
         coverPreview.innerHTML = '<span>Drop cover image here or click to upload</span>';
     }
@@ -322,7 +322,7 @@ async function handleAssetUpload(file, pageNumber, assetType) {
     
     try {
         showSaveIndicator(`Uploading ${assetType}...`);
-        const extension = assetType === 'audio' ? 'mp3' : 'jpg';
+        const extension = assetType === 'audio' ? (file.type === 'audio/wav' ? 'wav' : 'mp3') : 'jpg';
         const path = `books/${selectedBookId}/pages/${pageNumber}/${assetType}.${extension}`;
         const url = await uploadFile(file, path);
         
@@ -365,6 +365,9 @@ async function toggleBookStatus(bookId) {
     await update(ref(database), {
         [`books/${bookId}/status`]: newStatus
     });
+    
+    // Update currentBook status
+    currentBook.status = newStatus;
     
     showSaveIndicator(`Book ${newStatus}!`);
 }
@@ -421,11 +424,15 @@ function attachPageEventListeners() {
     
     // Page text updates
     document.querySelectorAll('.page-text').forEach(textarea => {
-        textarea.addEventListener('change', (e) => {
+        const saveTextBtn = document.createElement('button');
+        saveTextBtn.textContent = 'Save Text';
+        saveTextBtn.className = 'save-text-btn';
+        saveTextBtn.addEventListener('click', (e) => {
             const pageCard = e.target.closest('.page-card');
             const pageNumber = parseInt(pageCard.dataset.page);
-            updatePageText(pageNumber, e.target.value);
+            updatePageText(pageNumber, textarea.value);
         });
+        textarea.parentElement.appendChild(saveTextBtn);
     });
 }
 
@@ -433,6 +440,15 @@ function attachPageEventListeners() {
 bookTitleInput.addEventListener('change', (e) => {
     updateBookTitle(e.target.value);
 });
+
+// Add save button for book title
+const saveTitleBtn = document.createElement('button');
+saveTitleBtn.textContent = 'Save Title';
+saveTitleBtn.className = 'save-title-btn';
+saveTitleBtn.addEventListener('click', () => {
+    updateBookTitle(bookTitleInput.value);
+});
+document.querySelector('.form-group').appendChild(saveTitleBtn);
 
 // Cover upload handler
 coverUpload.addEventListener('click', () => {
@@ -453,6 +469,13 @@ addBookBtn.addEventListener('click', createNewBook);
 
 // Add new page handler
 addPageBtn.addEventListener('click', addPage);
+
+// Move add page button to a fixed position
+const fixedAddPageBtn = document.createElement('button');
+fixedAddPageBtn.textContent = 'Add Page';
+fixedAddPageBtn.className = 'fixed-add-page-btn';
+fixedAddPageBtn.addEventListener('click', addPage);
+document.body.appendChild(fixedAddPageBtn);
 
 // Initialize the app
 console.log('Starting app initialization...');
